@@ -1,4 +1,345 @@
-        function updateUserProfile() {
+        let currentUser = null;
+        let currentUserType = null;
+        let loginAttempts = 0;
+        const maxLoginAttempts = 3;
+        
+        // پایگاه داده کاربران محلی (در پروژه واقعی از سرور استفاده می‌شود)
+        // حفظ کاربران قبلی در صورت وجود
+        let users = JSON.parse(localStorage.getItem('platformUsers'));
+        if (!users) {
+            users = {
+                ideaOwner: [],
+                investor: []
+            };
+            localStorage.setItem('platformUsers', JSON.stringify(users));
+        }
+        
+        function showLoginPage() {
+            hideAllPages();
+            document.getElementById('loginPage').classList.remove('hidden');
+            
+            // پاک کردن جلسه کاربر
+            clearUserSession();
+        }
+        
+        function hideAllPages() {
+            const pages = ['loginPage', 'authPage', 'ideaOwnerDashboard', 'investorDashboard', 'ideaDetailsPage'];
+            pages.forEach(page => {
+                document.getElementById(page).classList.add('hidden');
+            });
+        }
+        
+        function showAuthPage(userType) {
+            currentUserType = userType;
+            hideAllPages();
+            document.getElementById('authPage').classList.remove('hidden');
+            
+            const title = document.getElementById('authTitle');
+            title.textContent = userType === 'ideaOwner' ? 'ورود ایده‌دار' : 'ورود سرمایه‌گذار';
+            
+            // ریست کردن تلاش‌های ورود و فرم‌ها
+            loginAttempts = 0;
+            clearForms();
+            hideError('loginError');
+            hideError('registerError');
+            
+            // فعال کردن دکمه ورود
+            const loginButton = document.getElementById('loginButton');
+            if (loginButton) {
+                loginButton.disabled = false;
+                loginButton.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+            
+            showLoginForm();
+        }
+        
+        function clearForms() {
+            // پاک کردن فرم ورود
+            const loginEmail = document.getElementById('loginEmail');
+            const loginPassword = document.getElementById('loginPassword');
+            if (loginEmail) loginEmail.value = '';
+            if (loginPassword) loginPassword.value = '';
+            
+            // پاک کردن فرم ثبت‌نام
+            const registerName = document.getElementById('registerName');
+            const registerEmail = document.getElementById('registerEmail');
+            const registerPassword = document.getElementById('registerPassword');
+            const registerConfirmPassword = document.getElementById('registerConfirmPassword');
+            if (registerName) registerName.value = '';
+            if (registerEmail) registerEmail.value = '';
+            if (registerPassword) registerPassword.value = '';
+            if (registerConfirmPassword) registerConfirmPassword.value = '';
+        }
+        
+        function showLoginForm() {
+            document.getElementById('loginForm').classList.remove('hidden');
+            document.getElementById('registerForm').classList.add('hidden');
+        }
+        
+        function showRegisterForm() {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('registerForm').classList.remove('hidden');
+        }
+        
+        function showError(errorId, message) {
+            const errorDiv = document.getElementById(errorId);
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+            
+            // مخفی کردن خطا بعد از 5 ثانیه
+            setTimeout(() => {
+                errorDiv.classList.add('hidden');
+            }, 5000);
+        }
+        
+        function hideError(errorId) {
+            document.getElementById(errorId).classList.add('hidden');
+        }
+        
+        function validateEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+        
+        function processLogin() {
+            const email = document.getElementById('loginEmail');
+            const password = document.getElementById('loginPassword');
+            const loginButton = document.getElementById('loginButton');
+            
+            if (!email || !password || !loginButton) {
+                console.error('Login elements not found');
+                return;
+            }
+            
+            const emailValue = email.value.trim();
+            const passwordValue = password.value;
+            
+            hideError('loginError');
+            
+            // بررسی تعداد تلاش‌ها
+            if (loginAttempts >= maxLoginAttempts) {
+                showError('loginError', `❌ شما بیش از ${maxLoginAttempts} بار تلاش کرده‌اید. لطفاً 5 دقیقه صبر کنید.`);
+                loginButton.disabled = true;
+                loginButton.classList.add('opacity-50', 'cursor-not-allowed');
+                
+                // فعال کردن مجدد بعد از 5 دقیقه (300 ثانیه)
+                setTimeout(() => {
+                    loginAttempts = 0;
+                    loginButton.disabled = false;
+                    loginButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                    hideError('loginError');
+                }, 300000); // 5 دقیقه
+                
+                return;
+            }
+            
+            // بررسی خالی بودن فیلدها
+            if (!emailValue || !passwordValue) {
+                showError('loginError', '❌ لطفاً تمام فیلدها را پر کنید');
+                return;
+            }
+            
+            // بررسی فرمت ایمیل
+            if (!validateEmail(emailValue)) {
+                showError('loginError', '❌ فرمت ایمیل صحیح نیست');
+                return;
+            }
+            
+            // بررسی اطلاعات کاربر
+            const userList = users[currentUserType] || [];
+            const user = userList.find(u => u.email === emailValue && u.password === passwordValue);
+            
+            if (user) {
+                // ورود موفق
+                currentUser = user;
+                loginAttempts = 0; // ریست کردن تلاش‌ها
+                
+                // ذخیره جلسه کاربر
+                saveUserSession();
+                
+                if (currentUserType === 'ideaOwner') {
+                    showIdeaOwnerDashboard();
+                } else {
+                    showInvestorDashboard();
+                }
+            } else {
+                // ورود ناموفق
+                loginAttempts++;
+                const remainingAttempts = maxLoginAttempts - loginAttempts;
+                
+                if (remainingAttempts > 0) {
+                    showError('loginError', `❌ ایمیل یا رمز عبور اشتباه است. ${remainingAttempts} تلاش باقی مانده`);
+                } else {
+                    showError('loginError', `❌ شما بیش از ${maxLoginAttempts} بار تلاش کرده‌اید. حساب شما برای 5 دقیقه مسدود شد.`);
+                    loginButton.disabled = true;
+                    loginButton.classList.add('opacity-50', 'cursor-not-allowed');
+                    
+                    // فعال کردن مجدد بعد از 5 دقیقه
+                    setTimeout(() => {
+                        loginAttempts = 0;
+                        loginButton.disabled = false;
+                        loginButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                        hideError('loginError');
+                    }, 300000); // 5 دقیقه
+                }
+            }
+        }
+        
+        function processRegister() {
+            const nameEl = document.getElementById('registerName');
+            const emailEl = document.getElementById('registerEmail');
+            const passwordEl = document.getElementById('registerPassword');
+            const confirmPasswordEl = document.getElementById('registerConfirmPassword');
+            
+            if (!nameEl || !emailEl || !passwordEl || !confirmPasswordEl) {
+                console.error('Register elements not found');
+                return;
+            }
+            
+            const name = nameEl.value.trim();
+            const email = emailEl.value.trim();
+            const password = passwordEl.value;
+            const confirmPassword = confirmPasswordEl.value;
+            
+            hideError('registerError');
+            
+            // بررسی خالی بودن فیلدها
+            if (!name || !email || !password || !confirmPassword) {
+                showError('registerError', '❌ لطفاً تمام فیلدها را پر کنید');
+                return;
+            }
+            
+            // بررسی فرمت ایمیل
+            if (!validateEmail(email)) {
+                showError('registerError', '❌ فرمت ایمیل صحیح نیست');
+                return;
+            }
+            
+            // بررسی طول رمز عبور
+            if (password.length < 6) {
+                showError('registerError', '❌ رمز عبور باید حداقل 6 کاراکتر باشد');
+                return;
+            }
+            
+            // بررسی تطابق رمز عبور
+            if (password !== confirmPassword) {
+                showError('registerError', '❌ رمز عبور و تکرار آن یکسان نیستند');
+                return;
+            }
+            
+            // بررسی وجود ایمیل در سیستم
+            const userList = users[currentUserType] || [];
+            const existingUser = userList.find(u => u.email === email);
+            
+            if (existingUser) {
+                showError('registerError', '❌ این ایمیل قبلاً ثبت شده است');
+                return;
+            }
+            
+            // ثبت‌نام موفق
+            const newUser = { 
+                email, 
+                password, 
+                name,
+                id: Date.now().toString(),
+                createdAt: new Date().toISOString(),
+                profile: {},
+                medals: [],
+                wallet: { balance: 0, transactions: [] }
+            };
+            
+            // اطمینان از وجود آرایه
+            if (!users[currentUserType]) {
+                users[currentUserType] = [];
+            }
+            
+            users[currentUserType].push(newUser);
+            currentUser = newUser;
+            
+            // ذخیره در localStorage
+            localStorage.setItem('platformUsers', JSON.stringify(users));
+            
+            // ذخیره جلسه کاربر
+            saveUserSession();
+            
+            // نمایش پیام موفقیت
+            const registerErrorEl = document.getElementById('registerError');
+            if (registerErrorEl && registerErrorEl.parentNode) {
+                const successDiv = document.createElement('div');
+                successDiv.className = 'bg-green-600/20 border border-green-500 rounded-lg p-3 text-green-300 text-sm';
+                successDiv.textContent = '✅ ثبت‌ نام با موفقیت انجام شد!';
+                registerErrorEl.parentNode.insertBefore(successDiv, registerErrorEl);
+                
+                setTimeout(() => {
+                    if (successDiv.parentNode) {
+                        successDiv.remove();
+                    }
+                    if (currentUserType === 'ideaOwner') {
+                        showIdeaOwnerDashboard();
+                    } else {
+                        showInvestorDashboard();
+                    }
+                }, 2000);
+            } else {
+                // اگر element پیدا نشد، مستقیماً به داشبورد برو
+                setTimeout(() => {
+                    if (currentUserType === 'ideaOwner') {
+                        showIdeaOwnerDashboard();
+                    } else {
+                        showInvestorDashboard();
+                    }
+                }, 1000);
+            }
+        }
+        
+
+        
+        function showIdeaOwnerDashboard() {
+            try {
+                hideAllPages();
+                const dashboard = document.getElementById('ideaOwnerDashboard');
+                if (dashboard) {
+                    dashboard.classList.remove('hidden');
+                }
+                
+                // اطمینان از وجود ساختار کاربر
+                if (!currentUser.profile) currentUser.profile = {};
+                if (!currentUser.medals) currentUser.medals = [];
+                if (!currentUser.wallet) currentUser.wallet = { balance: 0, transactions: [] };
+                
+                updateUserProfile();
+                loadUserIdeas();
+                updateMedalsDisplay();
+                loadExamField();
+                loadIdeaOwnerChats();
+                loadIdeaOwnerProjects();
+                showIdeaOwnerSection('profile');
+            } catch (error) {
+                console.error('Error showing idea owner dashboard:', error);
+            }
+        }
+        
+        function showInvestorDashboard() {
+            try {
+                hideAllPages();
+                const dashboard = document.getElementById('investorDashboard');
+                if (dashboard) {
+                    dashboard.classList.remove('hidden');
+                }
+                
+                // اطمینان از وجود ساختار کاربر
+                if (!currentUser.profile) currentUser.profile = {};
+                
+                updateInvestorProfile();
+                loadAvailableIdeas();
+                loadUserInvestments();
+                loadEscrowTransactions();
+                showInvestorSection('profile');
+            } catch (error) {
+                console.error('Error showing investor dashboard:', error);
+            }
+        }
+function updateUserProfile() {
             if (!currentUser) return;
             
             try {

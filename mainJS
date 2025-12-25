@@ -1,0 +1,2765 @@
+        function updateUserProfile() {
+            if (!currentUser) return;
+            
+            try {
+                const nameEl = document.getElementById('userProfileName');
+                const emailEl = document.getElementById('userProfileEmail');
+                const phoneEl = document.getElementById('userProfilePhone');
+                const cityEl = document.getElementById('userProfileCity');
+                const experienceEl = document.getElementById('userProfileExperience');
+                const titleEl = document.getElementById('userProfileTitle');
+                const bioEl = document.getElementById('userProfileBio');
+                
+                if (nameEl) nameEl.textContent = currentUser.name || 'نام کاربر';
+                if (emailEl) emailEl.textContent = currentUser.email || '-';
+                
+                if (currentUser.profile) {
+                    if (phoneEl) phoneEl.textContent = currentUser.profile.phone || '-';
+                    if (cityEl) cityEl.textContent = currentUser.profile.city || '-';
+                    if (experienceEl) experienceEl.textContent = currentUser.profile.experience ? `${currentUser.profile.experience} سال` : '-';
+                    if (titleEl) titleEl.textContent = currentUser.profile.specialty || 'تخصص';
+                    if (bioEl) bioEl.textContent = currentUser.profile.bio || 'هنوز اطلاعاتی وارد نشده است.';
+                }
+                
+                // به‌روزرسانی اطلاعات کیف پول
+                updateWalletDisplay();
+            } catch (error) {
+                console.error('Error updating user profile:', error);
+            }
+        }
+        
+        function updateWalletDisplay() {
+            try {
+                if (!currentUser.wallet) {
+                    currentUser.wallet = { balance: 0, transactions: [] };
+                }
+                
+                const balance = currentUser.wallet.balance || 0;
+                const totalIncome = currentUser.wallet.transactions
+                    .filter(t => t.type === 'income')
+                    .reduce((sum, t) => sum + t.amount, 0);
+                
+                const balanceEl = document.getElementById('userWalletBalance');
+                const incomeEl = document.getElementById('userTotalIncome');
+                
+                if (balanceEl) balanceEl.textContent = `${balance.toLocaleString()} تومان`;
+                if (incomeEl) incomeEl.textContent = `${totalIncome.toLocaleString()} تومان`;
+            } catch (error) {
+                console.error('Error updating wallet display:', error);
+            }
+        }
+        
+        function showWalletHistory() {
+            if (!currentUser.wallet || !currentUser.wallet.transactions.length) {
+                alert('📊 تاریخچه تراکنش‌ها\n\nهنوز تراکنشی انجام نشده است.');
+                return;
+            }
+            
+            const modal = document.createElement('div');
+            modal.id = 'walletHistoryModal';
+            modal.className = 'fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50';
+            
+            const transactions = currentUser.wallet.transactions
+                .sort((a, b) => new Date(b.date) - new Date(a.date))
+                .slice(0, 10); // آخرین 10 تراکنش
+            
+            modal.innerHTML = `
+                <div class="bg-gray-800 rounded-xl p-8 max-w-2xl w-full border border-green-500/30 max-h-[80vh] overflow-y-auto">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-2xl font-bold text-green-300">📊 تاریخچه تراکنش‌ها</h3>
+                        <button onclick="closeWalletHistory()" class="text-gray-400 hover:text-white text-2xl">✕</button>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        ${transactions.map(transaction => `
+                            <div class="bg-gray-700/50 rounded-lg p-4 border border-gray-600">
+                                <div class="flex justify-between items-start mb-2">
+                                    <div>
+                                        <h4 class="font-bold text-white">${transaction.description}</h4>
+                                        <p class="text-sm text-gray-400">${new Date(transaction.date).toLocaleDateString('fa-IR')} - ${new Date(transaction.date).toLocaleTimeString('fa-IR', {hour: '2-digit', minute: '2-digit'})}</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="font-bold ${transaction.type === 'income' ? 'text-green-400' : 'text-red-400'}">
+                                            ${transaction.type === 'income' ? '+' : '-'}${transaction.amount.toLocaleString()} تومان
+                                        </p>
+                                        <p class="text-xs text-gray-400">${transaction.type === 'income' ? 'درآمد' : 'برداشت'}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    <div class="mt-6 text-center">
+                        <button onclick="closeWalletHistory()" class="bg-green-600 hover:bg-green-700 px-6 py-3 rounded-lg text-white transition-colors">
+                            بستن
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+        
+        function closeWalletHistory() {
+            const modal = document.getElementById('walletHistoryModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+        
+        function updateInvestorProfile() {
+            if (!currentUser) return;
+            
+            try {
+                const nameEl = document.getElementById('investorProfileName');
+                const emailEl = document.getElementById('investorProfileEmail');
+                const phoneEl = document.getElementById('investorProfilePhone');
+                const cityEl = document.getElementById('investorProfileCity');
+                const budgetEl = document.getElementById('investorProfileBudget');
+                const interestsEl = document.getElementById('investorProfileInterests');
+                
+                if (nameEl) nameEl.textContent = currentUser.name || 'نام کاربر';
+                if (emailEl) emailEl.textContent = currentUser.email || '-';
+                
+                if (currentUser.profile) {
+                    if (phoneEl) phoneEl.textContent = currentUser.profile.phone || '-';
+                    if (cityEl) cityEl.textContent = currentUser.profile.city || '-';
+                    if (budgetEl) budgetEl.textContent = currentUser.profile.budget || '-';
+                    if (interestsEl) interestsEl.textContent = currentUser.profile.interests || 'هنوز اطلاعاتی وارد نشده است.';
+                }
+            } catch (error) {
+                console.error('Error updating investor profile:', error);
+            }
+        }
+        
+        function showIdeaOwnerSection(section) {
+            try {
+                // مخفی کردن همه بخش‌ها
+                const sections = ['ideaOwnerProfile', 'ideaOwnerSubmit', 'ideaOwnerIdeas', 'ideaOwnerExams', 'ideaOwnerProjects', 'ideaOwnerChat'];
+                sections.forEach(s => {
+                    const el = document.getElementById(s);
+                    if (el) el.classList.add('hidden');
+                });
+                
+                // نمایش بخش انتخاب شده
+                const targetSection = 'ideaOwner' + section.charAt(0).toUpperCase() + section.slice(1);
+                const targetEl = document.getElementById(targetSection);
+                if (targetEl) {
+                    targetEl.classList.remove('hidden');
+                }
+                
+                // بارگذاری داده‌های مربوط به بخش
+                if (section === 'chat') {
+                    loadIdeaOwnerChats();
+                    hideChatNotification('ideaOwner');
+                } else if (section === 'exams') {
+                    updateMedalsDisplay();
+                    loadExamField();
+                } else if (section === 'projects') {
+                    loadIdeaOwnerProjects();
+                } else if (section === 'ideas') {
+                    loadUserIdeas();
+                }
+                
+                // به‌روزرسانی منو
+                updateNavigation('ideaOwnerDashboard', section);
+            } catch (error) {
+                console.error('Error showing idea owner section:', error);
+            }
+        }
+        
+        function showInvestorSection(section) {
+            try {
+                // مخفی کردن همه بخش‌ها
+                const sections = ['investorProfile', 'investorIdeas', 'investorInvestments', 'investorEscrow', 'investorChat'];
+                sections.forEach(s => {
+                    const el = document.getElementById(s);
+                    if (el) el.classList.add('hidden');
+                });
+                
+                // نمایش بخش انتخاب شده
+                const targetSection = 'investor' + section.charAt(0).toUpperCase() + section.slice(1);
+                const targetEl = document.getElementById(targetSection);
+                if (targetEl) {
+                    targetEl.classList.remove('hidden');
+                }
+                
+                // بارگذاری داده‌های مربوط به بخش
+                if (section === 'ideas') {
+                    loadAvailableIdeas();
+                } else if (section === 'investments') {
+                    loadUserInvestments();
+                } else if (section === 'escrow') {
+                    loadEscrowTransactions();
+                } else if (section === 'chat') {
+                    loadInvestorChats();
+                    hideChatNotification('investor');
+                }
+                
+                // به‌روزرسانی منو
+                updateNavigation('investorDashboard', section);
+            } catch (error) {
+                console.error('Error showing investor section:', error);
+            }
+        }
+        
+        function updateNavigation(dashboard, activeSection) {
+            try {
+                const navItems = document.querySelectorAll(`#${dashboard} .nav-item`);
+                navItems.forEach(item => {
+                    if (item) {
+                        item.classList.remove('active');
+                        if (item.getAttribute('data-section') === activeSection) {
+                            item.classList.add('active');
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error updating navigation:', error);
+            }
+        }
+        
+        function viewIdeaDetails(ideaId) {
+            hideAllPages();
+            document.getElementById('ideaDetailsPage').classList.remove('hidden');
+        }
+        
+        function sendMessage(chatType = 'ideaOwner') {
+            let input, messagesContainer;
+            
+            if (chatType === 'investor') {
+                input = document.getElementById('investorChatInput');
+                messagesContainer = document.getElementById('investorChatMessages');
+            } else {
+                input = document.getElementById('ideaOwnerChatInput');
+                messagesContainer = document.getElementById('ideaOwnerChatMessages');
+            }
+            
+            if (input && !input.disabled) {
+                const message = input.value.trim();
+                if (message) {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'flex justify-end';
+                    messageDiv.innerHTML = `
+                        <div class="bg-purple-600 rounded-lg p-3 max-w-xs">
+                            <p class="text-white">${message}</p>
+                        </div>
+                    `;
+                    messagesContainer.appendChild(messageDiv);
+                    input.value = '';
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }
+            }
+        }
+        
+        function submitIdea() {
+            try {
+                // بررسی وجود کاربر فعلی
+                if (!currentUser || !currentUser.id) {
+                    alert('❌ خطا: کاربر وارد نشده است. لطفاً دوباره وارد شوید.');
+                    return;
+                }
+                
+                const titleEl = document.getElementById('ideaTitle');
+                const categoryEl = document.getElementById('ideaCategory');
+                const descriptionEl = document.getElementById('ideaDescription');
+                
+                if (!titleEl || !categoryEl || !descriptionEl) {
+                    alert('❌ خطا در یافتن عناصر فرم');
+                    return;
+                }
+                
+                const title = titleEl.value.trim();
+                const category = categoryEl.value;
+                const description = descriptionEl.value.trim();
+                
+                // بررسی خالی بودن فیلدها
+                if (!title) {
+                    alert('❌ لطفاً موضوع ایده را وارد کنید');
+                    titleEl.focus();
+                    return;
+                }
+                
+                if (!category) {
+                    alert('❌ لطفاً دسته‌بندی ایده را انتخاب کنید');
+                    categoryEl.focus();
+                    return;
+                }
+                
+                if (!description) {
+                    alert('❌ لطفاً توضیحات ایده را وارد کنید');
+                    descriptionEl.focus();
+                    return;
+                }
+                
+                // بررسی طول موضوع (حداکثر یک خط)
+                if (title.length > 80) {
+                    alert('❌ موضوع ایده نباید از 80 کاراکتر بیشتر باشد\n\nطول فعلی: ' + title.length + ' کاراکتر');
+                    titleEl.focus();
+                    return;
+                }
+                
+                // بررسی حداقل طول توضیحات (حداقل سه خط)
+                if (description.length < 50) {
+                    alert('❌ توضیحات ایده باید حداقل 50 کاراکتر باشد\n\nطول فعلی: ' + description.length + ' کاراکتر');
+                    descriptionEl.focus();
+                    return;
+                }
+                
+                // بررسی ساده‌تر برای اطلاعات تماس
+                const contactPatterns = [
+                    /\b09\d{9}\b/g, // شماره موبایل
+                    /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, // ایمیل
+                    /@[a-zA-Z0-9_]+/g // اکانت شبکه اجتماعی
+                ];
+                
+                const fullText = title + ' ' + description;
+                let foundContacts = [];
+                
+                contactPatterns.forEach(pattern => {
+                    const matches = fullText.match(pattern);
+                    if (matches) {
+                        foundContacts = foundContacts.concat(matches);
+                    }
+                });
+                
+                if (foundContacts.length > 0) {
+                    alert(`❌ خطا: اطلاعات تماس در متن ایده مجاز نیست!\n\nموارد یافت شده: ${foundContacts.join(', ')}\n\nلطفاً اطلاعات تماس را حذف کرده و دوباره تلاش کنید.`);
+                    return;
+                }
+                
+                // ایجاد ایده جدید
+                const newIdea = {
+                    id: Date.now().toString(),
+                    title: title,
+                    category: category,
+                    description: description,
+                    ownerId: currentUser.id,
+                    ownerName: currentUser.name,
+                    ownerMedals: getUserMedalsForCategory(category),
+                    status: 'در انتظار بررسی',
+                    createdAt: new Date().toISOString(),
+                    aiScore: null,
+                    price: null
+                };
+                
+                // ذخیره ایده در سیستم مشترک
+                saveIdeaToCloud(newIdea);
+                
+                // پاک کردن فرم
+                titleEl.value = '';
+                categoryEl.value = '';
+                descriptionEl.value = '';
+                
+                alert('✅ ایده شما با موفقیت ثبت شد!\n\n🤖 در حال بررسی توسط هوش مصنوعی...\n\n⏱️ لطفاً چند ثانیه صبر کنید');
+                
+                // شبیه‌سازی بررسی هوش مصنوعی
+                setTimeout(() => {
+                    try {
+                        processIdeaWithAI(newIdea.id);
+                    } catch (error) {
+                        console.error('Error in AI processing:', error);
+                        alert('✅ ایده ثبت شد اما خطا در بررسی هوش مصنوعی رخ داد');
+                    }
+                }, 3000);
+                
+                // بازگشت به لیست ایده‌ها
+                showIdeaOwnerSection('ideas');
+                
+            } catch (error) {
+                console.error('Error submitting idea:', error);
+                alert('❌ خطا در ثبت ایده: ' + error.message + '\n\nلطفاً دوباره تلاش کنید.');
+            }
+        }
+        
+        function getUserMedalsForCategory(category) {
+            if (!currentUser.medals || !currentUser.profile || !currentUser.profile.examField) {
+                return [];
+            }
+            
+            // بررسی تطابق دسته‌بندی ایده با زمینه آزمون
+            const examField = currentUser.profile.examField;
+            const categoryMapping = {
+                'فناوری': 'فناوری',
+                'کسب و کار': 'کسب و کار', 
+                'سلامت': 'سلامت',
+                'آموزش': 'آموزش',
+                'سرگرمی': 'سرگرمی',
+                'محیط زیست': 'محیط زیست',
+                'مالی': 'مالی'
+            };
+            
+            if (categoryMapping[category] === examField) {
+                return currentUser.medals;
+            }
+            
+            return [];
+        }
+        
+        // سیستم ذخیره‌سازی مشترک برای همه دستگاه‌ها
+        function saveIdeaToCloud(idea) {
+            try {
+                // ذخیره در localStorage محلی
+                let ideas = JSON.parse(localStorage.getItem('platformIdeas')) || [];
+                ideas.push(idea);
+                localStorage.setItem('platformIdeas', JSON.stringify(ideas));
+                
+                // ذخیره در سیستم مشترک (شبیه‌سازی cloud storage)
+                const cloudKey = 'globalPlatformIdeas';
+                let globalIdeas = [];
+                
+                try {
+                    // تلاش برای خواندن از سیستم مشترک
+                    const existingGlobalData = localStorage.getItem(cloudKey);
+                    if (existingGlobalData) {
+                        globalIdeas = JSON.parse(existingGlobalData);
+                    }
+                } catch (e) {
+                    globalIdeas = [];
+                }
+                
+                // اضافه کردن ایده جدید به سیستم مشترک
+                globalIdeas.push(idea);
+                localStorage.setItem(cloudKey, JSON.stringify(globalIdeas));
+                
+                console.log('Idea saved to cloud:', idea.title);
+            } catch (error) {
+                console.error('Error saving idea to cloud:', error);
+            }
+        }
+        
+        function loadIdeasFromCloud() {
+            try {
+                const cloudKey = 'globalPlatformIdeas';
+                const globalIdeas = JSON.parse(localStorage.getItem(cloudKey)) || [];
+                
+                // ترکیب ایده‌های محلی و مشترک
+                const localIdeas = JSON.parse(localStorage.getItem('platformIdeas')) || [];
+                
+                // حذف تکراری‌ها بر اساس ID
+                const allIdeas = [...localIdeas];
+                globalIdeas.forEach(globalIdea => {
+                    if (!allIdeas.find(idea => idea.id === globalIdea.id)) {
+                        allIdeas.push(globalIdea);
+                    }
+                });
+                
+                // به‌روزرسانی localStorage محلی
+                localStorage.setItem('platformIdeas', JSON.stringify(allIdeas));
+                
+                return allIdeas;
+            } catch (error) {
+                console.error('Error loading ideas from cloud:', error);
+                return JSON.parse(localStorage.getItem('platformIdeas')) || [];
+            }
+        }
+        
+        function processIdeaWithAI(ideaId) {
+            // بارگذاری آخرین ایده‌ها از سیستم مشترک
+            const ideas = loadIdeasFromCloud();
+            const ideaIndex = ideas.findIndex(idea => idea.id === ideaId);
+            
+            if (ideaIndex !== -1) {
+                const idea = ideas[ideaIndex];
+                
+                // شبیه‌سازی تحلیل هوش مصنوعی بر اساس محتوای ایده
+                const aiAnalysis = analyzeIdeaWithAI(idea);
+                
+                ideas[ideaIndex].status = aiAnalysis.approved ? 'تایید شده' : 'رد شده';
+                ideas[ideaIndex].aiScore = aiAnalysis.score;
+                ideas[ideaIndex].price = aiAnalysis.price;
+                ideas[ideaIndex].aiAnalysis = aiAnalysis.analysis;
+                ideas[ideaIndex].marketPotential = aiAnalysis.marketPotential;
+                ideas[ideaIndex].technicalFeasibility = aiAnalysis.technicalFeasibility;
+                ideas[ideaIndex].competitiveAdvantage = aiAnalysis.competitiveAdvantage;
+                
+                // ذخیره در هر دو سیستم
+                localStorage.setItem('platformIdeas', JSON.stringify(ideas));
+                localStorage.setItem('globalPlatformIdeas', JSON.stringify(ideas));
+                
+                // به‌روزرسانی نمایش
+                loadUserIdeas();
+                loadAvailableIdeas();
+                
+                if (aiAnalysis.approved) {
+                    alert(`🎉 ایده شما تایید شد!\n\n⭐ امتیاز: ${aiAnalysis.score}\n💰 قیمت پیشنهادی: ${aiAnalysis.price.toLocaleString()} تومان\n\n🤖 تحلیل هوش مصنوعی:\n${aiAnalysis.analysis}`);
+                } else {
+                    alert(`❌ متأسفانه ایده شما تایید نشد.\n\n🤖 دلیل:\n${aiAnalysis.analysis}\n\nلطفاً ایده خود را بهبود دهید و مجدداً ارسال کنید.`);
+                }
+            }
+        }
+        
+        function analyzeIdeaWithAI(idea) {
+            // شبیه‌سازی تحلیل هوش مصنوعی
+            const title = idea.title.toLowerCase();
+            const description = idea.description.toLowerCase();
+            const category = idea.category;
+            
+            let score = 0;
+            let analysis = '';
+            let marketPotential = 0;
+            let technicalFeasibility = 0;
+            let competitiveAdvantage = 0;
+            
+            // تحلیل کلمات کلیدی
+            const innovativeKeywords = ['نوآورانه', 'جدید', 'منحصر', 'انقلابی', 'پیشرفته', 'هوشمند', 'خلاقانه'];
+            const techKeywords = ['هوش مصنوعی', 'بلاک چین', 'اینترنت اشیا', 'واقعیت مجازی', 'یادگیری ماشین'];
+            const marketKeywords = ['بازار', 'مشتری', 'فروش', 'درآمد', 'سود', 'رقابت'];
+            
+            // بررسی نوآوری
+            const innovationScore = innovativeKeywords.filter(keyword => 
+                title.includes(keyword) || description.includes(keyword)
+            ).length;
+            
+            // بررسی فناوری
+            const techScore = techKeywords.filter(keyword => 
+                title.includes(keyword) || description.includes(keyword)
+            ).length;
+            
+            // بررسی بازار
+            const marketScore = marketKeywords.filter(keyword => 
+                title.includes(keyword) || description.includes(keyword)
+            ).length;
+            
+            // محاسبه امتیازات
+            marketPotential = Math.min(100, (marketScore * 20) + (Math.random() * 40) + 30);
+            technicalFeasibility = Math.min(100, (techScore * 15) + (Math.random() * 50) + 25);
+            competitiveAdvantage = Math.min(100, (innovationScore * 25) + (Math.random() * 40) + 20);
+            
+            const overallScore = (marketPotential + technicalFeasibility + competitiveAdvantage) / 3;
+            
+            // تعیین وضعیت نهایی
+            let approved = true;
+            let finalScore = '';
+            let price = 0;
+            
+            if (overallScore >= 70) {
+                finalScore = 'عالی';
+                price = Math.floor(Math.random() * 15000) + 30000; // 30-45 هزار
+                analysis = `ایده شما بسیار قوی و با پتانسیل بالا ارزیابی شد. نقاط قوت: نوآوری بالا، قابلیت اجرا مناسب، و مزیت رقابتی خوب.`;
+            } else if (overallScore >= 50) {
+                finalScore = 'خوب';
+                price = Math.floor(Math.random() * 10000) + 20000; // 20-30 هزار
+                analysis = `ایده شما پتانسیل خوبی دارد اما نیاز به بهبود در برخی جنبه‌ها دارد. با توسعه بیشتر می‌تواند موفق باشد.`;
+            } else if (overallScore >= 30) {
+                finalScore = 'متوسط';
+                price = Math.floor(Math.random() * 8000) + 12000; // 12-20 هزار
+                analysis = `ایده شما در سطح متوسط قرار دارد. برای موفقیت نیاز به بازنگری و بهبود در استراتژی بازار و اجرا دارد.`;
+            } else {
+                approved = false;
+                analysis = `متأسفانه ایده شما در حال حاضر آمادگی ورود به بازار را ندارد. پیشنهاد می‌شود روی نوآوری، قابلیت اجرا و تحلیل بازار بیشتر کار کنید.`;
+            }
+            
+            // اضافه کردن جزئیات تحلیل
+            if (approved) {
+                analysis += `\n\n📊 جزئیات تحلیل:\n• پتانسیل بازار: ${Math.round(marketPotential)}%\n• قابلیت فنی: ${Math.round(technicalFeasibility)}%\n• مزیت رقابتی: ${Math.round(competitiveAdvantage)}%`;
+            }
+            
+            return {
+                approved,
+                score: finalScore,
+                price,
+                analysis,
+                marketPotential: Math.round(marketPotential),
+                technicalFeasibility: Math.round(technicalFeasibility),
+                competitiveAdvantage: Math.round(competitiveAdvantage)
+            };
+        }
+        
+        function loadUserIdeas() {
+            // بارگذاری آخرین ایده‌ها از سیستم مشترک
+            const ideas = loadIdeasFromCloud();
+            const userIdeas = ideas.filter(idea => idea.ownerId === currentUser.id);
+            const container = document.getElementById('userIdeasContainer');
+            
+            if (userIdeas.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12">
+                        <div class="text-6xl mb-4">💡</div>
+                        <h4 class="text-xl font-bold text-gray-400 mb-2">هنوز ایده‌ای ثبت نکرده‌اید</h4>
+                        <p class="text-gray-500 mb-6">اولین ایده خود را ثبت کنید و شروع به کسب درآمد کنید</p>
+                        <button onclick="showIdeaOwnerSection('submit')" class="bg-purple-600 hover:bg-purple-700 px-6 py-3 rounded-lg transition-colors">
+                            ثبت اولین ایده
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = userIdeas.map(idea => {
+                const statusColor = idea.status === 'تایید شده' ? 'bg-green-600' : 
+                                  idea.status === 'رد شده' ? 'bg-red-600' : 'bg-yellow-600';
+                
+                // نمایش مدال‌های مرتبط با دسته‌بندی ایده
+                const medalIcons = { bronze: '🥉', silver: '🥈', gold: '🥇' };
+                const medalsHtml = idea.ownerMedals && idea.ownerMedals.length > 0 ? 
+                    idea.ownerMedals.map(medal => `<span class="text-lg">${medalIcons[medal]}</span>`).join('') : '';
+                
+                return `
+                    <div class="bg-gray-800/50 backdrop-blur-lg rounded-xl p-6 border border-purple-500/30">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <div class="flex items-center gap-2 mb-2">
+                                    <h4 class="text-xl font-bold">${idea.title}</h4>
+                                    ${medalsHtml ? `<div class="flex gap-1">${medalsHtml}</div>` : ''}
+                                </div>
+                                <p class="text-gray-400">دسته: ${idea.category}</p>
+                                ${idea.price ? `<p class="text-green-400 font-bold">قیمت: ${idea.price.toLocaleString()} تومان</p>` : ''}
+                            </div>
+                            <span class="${statusColor} text-xs px-3 py-1 rounded-full">${idea.status}</span>
+                        </div>
+                        <p class="text-gray-300 mb-4">${idea.description.substring(0, 100)}...</p>
+                        <div class="flex gap-2">
+                            <button onclick="viewIdeaDetails('${idea.id}')" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors">مشاهده</button>
+                            <button onclick="editIdea('${idea.id}')" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg transition-colors">ویرایش</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function loadAvailableIdeas() {
+            // بارگذاری آخرین ایده‌ها از سیستم مشترک
+            const ideas = loadIdeasFromCloud();
+            const availableIdeas = ideas.filter(idea => idea.status === 'تایید شده' && idea.ownerId !== currentUser.id);
+            const container = document.getElementById('availableIdeasContainer');
+            
+            if (availableIdeas.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12">
+                        <div class="text-6xl mb-4">🔍</div>
+                        <h4 class="text-xl font-bold text-gray-400 mb-2">هنوز ایده‌ای برای سرمایه‌گذاری موجود نیست</h4>
+                        <p class="text-gray-500">به زودی ایده‌های جدید اضافه خواهد شد</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = availableIdeas.map(idea => {
+                // نمایش مدال‌های ایده‌دار
+                const medalIcons = { bronze: '🥉', silver: '🥈', gold: '🥇' };
+                const medalsHtml = idea.ownerMedals && idea.ownerMedals.length > 0 ? 
+                    idea.ownerMedals.map(medal => `<span class="text-lg">${medalIcons[medal]}</span>`).join('') : '';
+                
+                return `
+                    <div class="bg-gray-800/50 backdrop-blur-lg rounded-xl p-6 border border-purple-500/30 card-hover">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <div class="flex items-center gap-2 mb-2">
+                                    <h4 class="text-xl font-bold text-purple-300">${idea.title}</h4>
+                                    ${medalsHtml ? `<div class="flex gap-1">${medalsHtml}</div>` : ''}
+                                </div>
+                                <p class="text-gray-400">دسته: ${idea.category} | ایده‌دار: ${idea.ownerName}</p>
+                            </div>
+                        </div>
+                        <p class="text-gray-300 mb-4">${idea.description.substring(0, 150)}...</p>
+                        <div class="flex justify-between items-center">
+                            <div class="ai-indicator text-xs px-3 py-1 rounded-full text-white">
+                                🤖 تایید شده توسط هوش مصنوعی
+                            </div>
+                            <div class="flex gap-2">
+                                <span class="text-green-400 font-bold">${idea.price.toLocaleString()} تومان</span>
+                                <button onclick="viewOwnerProfile('${idea.ownerId}')" class="bg-purple-600 hover:bg-purple-700 px-3 py-2 rounded-lg transition-colors text-sm">👤 پروفایل</button>
+                                <button onclick="viewIdeaDetailsForPurchase('${idea.id}')" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors">مشاهده جزئیات</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function loadUserInvestments() {
+            const investments = JSON.parse(localStorage.getItem('userInvestments_' + currentUser.id)) || [];
+            const container = document.getElementById('userInvestmentsContainer');
+            
+            if (investments.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12">
+                        <div class="text-6xl mb-4">📊</div>
+                        <h4 class="text-xl font-bold text-gray-400 mb-2">هنوز سرمایه‌گذاری نکرده‌اید</h4>
+                        <p class="text-gray-500 mb-6">در ایده‌های برتر سرمایه‌گذاری کنید و درآمد کسب کنید</p>
+                        <button onclick="showInvestorSection('ideas')" class="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg transition-colors">
+                            مشاهده ایده‌ها
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = investments.map(investment => `
+                <div class="bg-gray-800/50 backdrop-blur-lg rounded-xl p-6 border border-green-500/30">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h4 class="text-xl font-bold">${investment.ideaTitle}</h4>
+                            <p class="text-gray-400">خریداری شده در: ${new Date(investment.purchaseDate).toLocaleDateString('fa-IR')}</p>
+                        </div>
+                        <span class="bg-green-600 text-xs px-3 py-1 rounded-full">فعال</span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-4 text-center">
+                        <div>
+                            <p class="text-gray-400">مبلغ پرداختی</p>
+                            <p class="text-white font-bold">${investment.amount.toLocaleString()} تومان</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-400">وضعیت همکاری</p>
+                            <p class="text-green-400 font-bold">در حال همکاری</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-400">پیشرفت</p>
+                            <p class="text-blue-400 font-bold">${Math.floor(Math.random() * 40) + 30}%</p>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // متغیرهای آزمون
+        let currentExam = null;
+        let currentQuestionIndex = 0;
+        let examTimer = null;
+        let examTimeLeft = 0;
+        let userAnswers = [];
+        
+        function updateExamField() {
+            try {
+                const examFieldEl = document.getElementById('examField');
+                if (!examFieldEl) return;
+                
+                const field = examFieldEl.value;
+                if (currentUser) {
+                    if (!currentUser.profile) {
+                        currentUser.profile = {};
+                    }
+                    currentUser.profile.examField = field;
+                    saveUserData();
+                }
+            } catch (error) {
+                console.error('Error updating exam field:', error);
+            }
+        }
+        
+        function startExam(level) {
+            const field = document.getElementById('examField').value;
+            if (!field) {
+                alert('لطفاً ابتدا زمینه تخصصی خود را انتخاب کنید');
+                return;
+            }
+            
+            // نمایش صفحه پرداخت
+            showExamPaymentModal(level, field);
+        }
+        
+        function showExamPaymentModal(level, field) {
+            const modal = document.getElementById('examPaymentModal');
+            const examCosts = { bronze: 50000, silver: 80000, gold: 120000 };
+            const levelNames = { bronze: 'برنز', silver: 'نقره', gold: 'طلا' };
+            
+            // تنظیم اطلاعات پرداخت
+            document.getElementById('examPaymentTitle').textContent = `آزمون مدال ${levelNames[level]}`;
+            document.getElementById('examPaymentField').textContent = `زمینه: ${field}`;
+            document.getElementById('examPaymentPrice').textContent = `${examCosts[level].toLocaleString()} تومان`;
+            
+            // محاسبه مبلغ بیت‌کوین (شبیه‌سازی)
+            const btcAmount = (examCosts[level] / 2500000000).toFixed(8); // فرض: 1 BTC = 2.5 میلیارد تومان
+            document.getElementById('examBtcAmount').textContent = `${btcAmount} BTC`;
+            
+            // ذخیره اطلاعات آزمون برای بعد از پرداخت
+            modal.dataset.examLevel = level;
+            modal.dataset.examField = field;
+            
+            modal.classList.remove('hidden');
+        }
+        
+        function closeExamPaymentModal() {
+            const modal = document.getElementById('examPaymentModal');
+            modal.classList.add('hidden');
+            
+            // ریست کردن فرم پرداخت
+            const paymentDetails = document.getElementById('examPaymentDetails');
+            const fiatPayment = document.getElementById('examFiatPayment');
+            const cryptoPayment = document.getElementById('examCryptoPayment');
+            
+            paymentDetails.classList.add('hidden');
+            fiatPayment.classList.add('hidden');
+            cryptoPayment.classList.add('hidden');
+            
+            // پاک کردن انتخاب روش پرداخت
+            const paymentRadios = document.querySelectorAll('input[name="examPayment"]');
+            paymentRadios.forEach(radio => radio.checked = false);
+        }
+        
+        function showExamPaymentDetails(method) {
+            const paymentDetails = document.getElementById('examPaymentDetails');
+            const fiatPayment = document.getElementById('examFiatPayment');
+            const cryptoPayment = document.getElementById('examCryptoPayment');
+            
+            paymentDetails.classList.remove('hidden');
+            
+            if (method === 'fiat') {
+                fiatPayment.classList.remove('hidden');
+                cryptoPayment.classList.add('hidden');
+            } else {
+                fiatPayment.classList.add('hidden');
+                cryptoPayment.classList.remove('hidden');
+            }
+        }
+        
+        function processExamPayment() {
+            const paymentMethod = document.querySelector('input[name="examPayment"]:checked');
+            if (!paymentMethod) {
+                alert('لطفاً روش پرداخت را انتخاب کنید');
+                return;
+            }
+            
+            const modal = document.getElementById('examPaymentModal');
+            const level = modal.dataset.examLevel;
+            const field = modal.dataset.examField;
+            
+            // شبیه‌سازی پردازش پرداخت
+            alert('✅ پرداخت با موفقیت انجام شد!\n\nآزمون شروع می‌شود...');
+            
+            closeExamPaymentModal();
+            
+            // شروع آزمون پس از پرداخت موفق
+            startExamAfterPayment(level, field);
+        }
+        
+        function startExamAfterPayment(level, field) {
+            // تولید سوالات آزمون
+            currentExam = generateExam(level, field);
+            currentQuestionIndex = 0;
+            userAnswers = new Array(currentExam.questions.length).fill(null);
+            
+            // تنظیم تایمر - 5 دقیقه برای هر سوال
+            examTimeLeft = currentExam.questions.length * 5 * 60; // 5 دقیقه × تعداد سوالات
+            
+            // نمایش مودال آزمون
+            showExamModal();
+            startExamTimer();
+            displayCurrentQuestion();
+        }
+        
+        function generateExam(level, field) {
+            const questionCounts = { bronze: 10, silver: 15, gold: 20 };
+            const questionCount = questionCounts[level];
+            
+            const examData = {
+                level: level,
+                field: field,
+                questions: []
+            };
+            
+            // بانک سوالات بر اساس زمینه
+            const questionBanks = {
+                'فناوری': [
+                    {
+                        question: 'کدام یک از زبان‌های برنامه‌نویسی زیر برای توسعه وب فرانت‌اند استفاده می‌شود؟',
+                        options: ['Python', 'JavaScript', 'C++', 'Java'],
+                        correct: 1
+                    },
+                    {
+                        question: 'مفهوم API در برنامه‌نویسی به چه معناست؟',
+                        options: ['Application Programming Interface', 'Automated Program Integration', 'Advanced Programming Instructions', 'Application Process Interface'],
+                        correct: 0
+                    },
+                    {
+                        question: 'کدام پروتکل برای انتقال امن داده در وب استفاده می‌شود؟',
+                        options: ['HTTP', 'FTP', 'HTTPS', 'SMTP'],
+                        correct: 2
+                    },
+                    {
+                        question: 'در طراحی UX/UI، اصل "Don\'t Make Me Think" به چه معناست؟',
+                        options: ['رابط کاربری باید پیچیده باشد', 'کاربر نباید فکر کند', 'رابط باید ساده و قابل فهم باشد', 'کاربر باید راهنمایی بخواند'],
+                        correct: 2
+                    },
+                    {
+                        question: 'کدام یک از روش‌های زیر برای بهینه‌سازی سئو وب‌سایت مهم است؟',
+                        options: ['استفاده از تصاویر زیاد', 'سرعت بارگذاری صفحه', 'رنگ‌های زیاد', 'فونت‌های مختلف'],
+                        correct: 1
+                    },
+                    {
+                        question: 'کدام یک از پایگاه‌های داده زیر NoSQL محسوب می‌شود؟',
+                        options: ['MySQL', 'PostgreSQL', 'MongoDB', 'Oracle'],
+                        correct: 2
+                    },
+                    {
+                        question: 'در معماری نرم‌افزار، MVC مخفف چیست؟',
+                        options: ['Model View Controller', 'Multiple View Control', 'Main Visual Component', 'Modern Version Control'],
+                        correct: 0
+                    },
+                    {
+                        question: 'کدام یک از فریمورک‌های زیر برای React استفاده می‌شود؟',
+                        options: ['Laravel', 'Django', 'Next.js', 'Spring'],
+                        correct: 2
+                    },
+                    {
+                        question: 'در هوش مصنوعی، مفهوم Machine Learning به چه معناست؟',
+                        options: ['ساخت ماشین‌های هوشمند', 'یادگیری خودکار از داده‌ها', 'برنامه‌نویسی ماشین', 'کنترل ماشین‌ها'],
+                        correct: 1
+                    },
+                    {
+                        question: 'کدام یک از زبان‌های برنامه‌نویسی زیر برای Data Science محبوب است؟',
+                        options: ['HTML', 'CSS', 'Python', 'XML'],
+                        correct: 2
+                    },
+                    {
+                        question: 'در امنیت سایبری، مفهوم Encryption به چه معناست؟',
+                        options: ['حذف داده‌ها', 'رمزنگاری اطلاعات', 'فشرده‌سازی فایل‌ها', 'پشتیبان‌گیری'],
+                        correct: 1
+                    },
+                    {
+                        question: 'کدام یک از سیستم‌عامل‌های زیر متن‌باز است؟',
+                        options: ['Windows', 'macOS', 'Linux', 'iOS'],
+                        correct: 2
+                    },
+                    {
+                        question: 'در شبکه‌های کامپیوتری، IP مخفف چیست؟',
+                        options: ['Internet Protocol', 'Internal Process', 'Information Package', 'Input Program'],
+                        correct: 0
+                    },
+                    {
+                        question: 'کدام یک از ابزارهای زیر برای Version Control استفاده می‌شود؟',
+                        options: ['Photoshop', 'Git', 'Excel', 'PowerPoint'],
+                        correct: 1
+                    },
+                    {
+                        question: 'در Cloud Computing، SaaS مخفف چیست؟',
+                        options: ['Software as a Service', 'System as a Solution', 'Security as a Standard', 'Storage as a Service'],
+                        correct: 0
+                    },
+                    {
+                        question: 'کدام یک از روش‌های Agile Development محبوب است؟',
+                        options: ['Waterfall', 'Scrum', 'V-Model', 'Spiral'],
+                        correct: 1
+                    },
+                    {
+                        question: 'در برنامه‌نویسی، مفهوم OOP مخفف چیست؟',
+                        options: ['Object Oriented Programming', 'Online Operating Platform', 'Optimized Output Process', 'Open Office Protocol'],
+                        correct: 0
+                    },
+                    {
+                        question: 'کدام یک از انواع تست نرم‌افزار است؟',
+                        options: ['Unit Test', 'Integration Test', 'System Test', 'همه موارد'],
+                        correct: 3
+                    },
+                    {
+                        question: 'در DevOps، مفهوم CI/CD به چه معناست؟',
+                        options: ['Continuous Integration/Continuous Deployment', 'Computer Interface/Code Development', 'Central Intelligence/Code Distribution', 'Custom Installation/Complete Design'],
+                        correct: 0
+                    },
+                    {
+                        question: 'کدام یک از پروتکل‌های شبکه برای ایمیل استفاده می‌شود؟',
+                        options: ['HTTP', 'FTP', 'SMTP', 'SSH'],
+                        correct: 2
+                    }
+                ],
+                'کسب و کار': [
+                    {
+                        question: 'مدل کسب‌وکار B2B به چه معناست؟',
+                        options: ['Business to Business', 'Business to Buyer', 'Brand to Business', 'Business to Bank'],
+                        correct: 0
+                    },
+                    {
+                        question: 'در بازاریابی دیجیتال، ROI مخفف چیست؟',
+                        options: ['Return on Investment', 'Rate of Interest', 'Revenue of Income', 'Return of Income'],
+                        correct: 0
+                    },
+                    {
+                        question: 'کدام یک از عوامل زیر در تحلیل SWOT قرار نمی‌گیرد؟',
+                        options: ['نقاط قوت', 'نقاط ضعف', 'فرصت‌ها', 'قیمت‌گذاری'],
+                        correct: 3
+                    },
+                    {
+                        question: 'مفهوم MVP در استارتاپ‌ها به چه معناست؟',
+                        options: ['Most Valuable Player', 'Minimum Viable Product', 'Maximum Value Proposition', 'Market Value Product'],
+                        correct: 1
+                    },
+                    {
+                        question: 'کدام استراتژی قیمت‌گذاری برای محصولات جدید مناسب است؟',
+                        options: ['قیمت‌گذاری بر اساس هزینه', 'قیمت‌گذاری رقابتی', 'قیمت‌گذاری نفوذی', 'همه موارد'],
+                        correct: 3
+                    },
+                    {
+                        question: 'در مدیریت پروژه، مفهوم Agile به چه معناست؟',
+                        options: ['مدیریت سنتی', 'مدیریت چابک و انعطاف‌پذیر', 'مدیریت سخت‌گیرانه', 'مدیریت خطی'],
+                        correct: 1
+                    },
+                    {
+                        question: 'کدام یک از مراحل فروش در قیف فروش قرار دارد؟',
+                        options: ['تولید محصول', 'جذب مشتری', 'حسابداری', 'منابع انسانی'],
+                        correct: 1
+                    },
+                    {
+                        question: 'در بازاریابی، مفهوم Target Audience به چه معناست؟',
+                        options: ['کل بازار', 'مخاطب هدف', 'رقبا', 'تولیدکنندگان'],
+                        correct: 1
+                    },
+                    {
+                        question: 'کدام یک از شاخص‌های KPI محسوب می‌شود؟',
+                        options: ['رنگ لوگو', 'نرخ تبدیل', 'نوع فونت', 'اندازه دفتر'],
+                        correct: 1
+                    },
+                    {
+                        question: 'در مدیریت مالی، Cash Flow به چه معناست؟',
+                        options: ['جریان نقدی', 'سود خالص', 'درآمد کل', 'هزینه‌های ثابت'],
+                        correct: 0
+                    },
+                    {
+                        question: 'مفهوم Brand Identity در بازاریابی چیست؟',
+                        options: ['قیمت محصول', 'هویت برند', 'کیفیت محصول', 'مکان فروش'],
+                        correct: 1
+                    },
+                    {
+                        question: 'در تحلیل بازار، مفهوم Market Share به چه معناست؟',
+                        options: ['سهم بازار', 'اندازه بازار', 'رشد بازار', 'نوع بازار'],
+                        correct: 0
+                    },
+                    {
+                        question: 'کدام یک از استراتژی‌های رقابتی پورتر است؟',
+                        options: ['تمرکز بر هزینه', 'تمایز', 'تمرکز', 'همه موارد'],
+                        correct: 3
+                    },
+                    {
+                        question: 'در مدیریت منابع انسانی، HR مخفف چیست؟',
+                        options: ['High Revenue', 'Human Resources', 'Hard Requirements', 'Health Records'],
+                        correct: 1
+                    },
+                    {
+                        question: 'مفهوم Customer Lifetime Value چیست؟',
+                        options: ['سن مشتری', 'ارزش مادام‌العمر مشتری', 'تعداد مشتریان', 'رضایت مشتری'],
+                        correct: 1
+                    }
+                ],
+                'سلامت': [
+                    {
+                        question: 'کدام ویتامین برای جذب کلسیم ضروری است؟',
+                        options: ['ویتامین A', 'ویتامین B', 'ویتامین C', 'ویتامین D'],
+                        correct: 3
+                    },
+                    {
+                        question: 'نرمال ترین ضربان قلب در دقیقه برای بزرگسالان چقدر است؟',
+                        options: ['50-70', '60-100', '80-120', '100-140'],
+                        correct: 1
+                    },
+                    {
+                        question: 'کدام یک از عوامل زیر خطر بیماری قلبی را افزایش می‌دهد؟',
+                        options: ['ورزش منظم', 'تغذیه سالم', 'سیگار کشیدن', 'خواب کافی'],
+                        correct: 2
+                    },
+                    {
+                        question: 'BMI مخفف چیست؟',
+                        options: ['Body Mass Index', 'Basic Medical Information', 'Blood Measurement Index', 'Body Muscle Index'],
+                        correct: 0
+                    },
+                    {
+                        question: 'کدام ماده غذایی منبع خوبی از پروتئین است؟',
+                        options: ['برنج', 'نان', 'گوشت', 'قند'],
+                        correct: 2
+                    },
+                    {
+                        question: 'کدام یک از این ویتامین‌ها محلول در آب است؟',
+                        options: ['ویتامین A', 'ویتامین D', 'ویتامین C', 'ویتامین K'],
+                        correct: 2
+                    },
+                    {
+                        question: 'فشار خون طبیعی برای بزرگسالان چقدر است؟',
+                        options: ['140/90', '120/80', '100/60', '160/100'],
+                        correct: 1
+                    },
+                    {
+                        question: 'کدام یک از این مواد غذایی منبع خوبی از فیبر است؟',
+                        options: ['گوشت', 'شیر', 'سبزیجات برگ سبز', 'روغن'],
+                        correct: 2
+                    },
+                    {
+                        question: 'چند ساعت خواب برای بزرگسالان توصیه می‌شود؟',
+                        options: ['4-5 ساعت', '6-7 ساعت', '7-9 ساعت', '10-12 ساعت'],
+                        correct: 2
+                    },
+                    {
+                        question: 'کدام یک از این عوامل باعث افزایش کلسترول می‌شود؟',
+                        options: ['ورزش', 'غذاهای چرب', 'آب نوشیدن', 'خواب کافی'],
+                        correct: 1
+                    },
+                    {
+                        question: 'در تغذیه سالم، چند وعده غذا در روز توصیه می‌شود؟',
+                        options: ['2 وعده', '3 وعده', '5-6 وعده کوچک', 'هر زمان که گرسنه شدید'],
+                        correct: 2
+                    },
+                    {
+                        question: 'کدام یک از این مواد مغذی برای سلامت استخوان مهم است؟',
+                        options: ['کلسیم', 'قند', 'چربی اشباع', 'نمک'],
+                        correct: 0
+                    },
+                    {
+                        question: 'چند لیتر آب در روز برای بزرگسالان توصیه می‌شود؟',
+                        options: ['1 لیتر', '2-3 لیتر', '5 لیتر', '0.5 لیتر'],
+                        correct: 1
+                    },
+                    {
+                        question: 'کدام یک از این ورزش‌ها برای سلامت قلب مفید است؟',
+                        options: ['پیاده‌روی', 'نشستن', 'خوابیدن', 'تماشای تلویزیون'],
+                        correct: 0
+                    },
+                    {
+                        question: 'استرس مزمن می‌تواند باعث کدام مشکل شود؟',
+                        options: ['بهبود حافظه', 'کاهش فشار خون', 'ضعف سیستم ایمنی', 'افزایش انرژی'],
+                        correct: 2
+                    }
+                ],
+                'آموزش': [
+                    {
+                        question: 'کدام یک از روش‌های یادگیری فعال محسوب می‌شود؟',
+                        options: ['گوش دادن به سخنرانی', 'بحث گروهی', 'خواندن کتاب', 'تماشای فیلم'],
+                        correct: 1
+                    },
+                    {
+                        question: 'در آموزش، مفهوم Blended Learning به چه معناست؟',
+                        options: ['آموزش حضوری', 'آموزش آنلاین', 'ترکیب آموزش حضوری و آنلاین', 'آموزش خودآموز'],
+                        correct: 2
+                    },
+                    {
+                        question: 'کدام یک از انواع هوش چندگانه گاردنر است؟',
+                        options: ['هوش ریاضی', 'هوش موسیقی', 'هوش فضایی', 'همه موارد'],
+                        correct: 3
+                    }
+                ],
+                'سرگرمی': [
+                    {
+                        question: 'کدام یک از پلتفرم‌های زیر برای پخش ویدئو استفاده می‌شود؟',
+                        options: ['Instagram', 'YouTube', 'Twitter', 'LinkedIn'],
+                        correct: 1
+                    },
+                    {
+                        question: 'در صنعت بازی، مفهوم Indie Game به چه معناست؟',
+                        options: ['بازی بزرگ', 'بازی مستقل', 'بازی آنلاین', 'بازی موبایل'],
+                        correct: 1
+                    }
+                ],
+                'محیط زیست': [
+                    {
+                        question: 'کدام یک از انرژی‌های زیر تجدیدپذیر است؟',
+                        options: ['نفت', 'گاز طبیعی', 'انرژی خورشیدی', 'زغال سنگ'],
+                        correct: 2
+                    },
+                    {
+                        question: 'مفهوم Carbon Footprint به چه معناست؟',
+                        options: ['ردپای کربن', 'مصرف آب', 'آلودگی صوتی', 'زباله‌های جامد'],
+                        correct: 0
+                    }
+                ],
+                'مالی': [
+                    {
+                        question: 'در بانکداری، مفهوم سود مرکب چیست؟',
+                        options: ['سود ساده', 'سود روی سود', 'سود ثابت', 'سود متغیر'],
+                        correct: 1
+                    },
+                    {
+                        question: 'کدام یک از ابزارهای سرمایه‌گذاری کم‌ریسک محسوب می‌شود؟',
+                        options: ['سهام', 'ارز دیجیتال', 'سپرده بانکی', 'کالا'],
+                        correct: 2
+                    }
+                ]
+            };
+            
+            // انتخاب سوالات تصادفی
+            const availableQuestions = questionBanks[field] || questionBanks['فناوری'];
+            const selectedQuestions = [];
+            
+            for (let i = 0; i < questionCount && i < availableQuestions.length; i++) {
+                const randomIndex = Math.floor(Math.random() * availableQuestions.length);
+                if (!selectedQuestions.find(q => q.question === availableQuestions[randomIndex].question)) {
+                    selectedQuestions.push({...availableQuestions[randomIndex]});
+                }
+            }
+            
+            // اگر سوالات کافی نبود، تکرار کن
+            while (selectedQuestions.length < questionCount) {
+                const randomIndex = Math.floor(Math.random() * availableQuestions.length);
+                selectedQuestions.push({...availableQuestions[randomIndex]});
+            }
+            
+            examData.questions = selectedQuestions.slice(0, questionCount);
+            return examData;
+        }
+        
+        function showExamModal() {
+            const modal = document.getElementById('examModal');
+            const title = document.getElementById('examModalTitle');
+            
+            const levelNames = { bronze: 'برنز', silver: 'نقره', gold: 'طلا' };
+            title.textContent = `آزمون مدال ${levelNames[currentExam.level]} - ${currentExam.field}`;
+            
+            document.getElementById('totalQuestions').textContent = currentExam.questions.length;
+            
+            modal.classList.remove('hidden');
+        }
+        
+        function closeExamModal() {
+            if (confirm('آیا مطمئن هستید که می‌خواهید آزمون را ترک کنید؟ پیشرفت شما ذخیره نخواهد شد.')) {
+                clearInterval(examTimer);
+                document.getElementById('examModal').classList.add('hidden');
+                currentExam = null;
+            }
+        }
+        
+        function startExamTimer() {
+            examTimer = setInterval(() => {
+                examTimeLeft--;
+                
+                const minutes = Math.floor(examTimeLeft / 60);
+                const seconds = examTimeLeft % 60;
+                
+                document.getElementById('examTimer').textContent = 
+                    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                if (examTimeLeft <= 0) {
+                    clearInterval(examTimer);
+                    alert('زمان آزمون به پایان رسید!');
+                    finishExam();
+                }
+            }, 1000);
+        }
+        
+        function displayCurrentQuestion() {
+            const question = currentExam.questions[currentQuestionIndex];
+            const content = document.getElementById('examContent');
+            
+            content.innerHTML = `
+                <div class="space-y-4">
+                    <h4 class="text-lg font-bold text-white mb-4">${question.question}</h4>
+                    <div class="space-y-3">
+                        ${question.options.map((option, index) => `
+                            <label class="flex items-center space-x-3 space-x-reverse p-3 bg-gray-700 rounded-lg hover:bg-gray-600 cursor-pointer transition-colors">
+                                <input type="radio" name="answer" value="${index}" class="text-purple-500" ${userAnswers[currentQuestionIndex] === index ? 'checked' : ''} onchange="saveAnswer(${index})">
+                                <span class="text-white">${option}</span>
+                            </label>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            
+            // به‌روزرسانی شماره سوال
+            document.getElementById('currentQuestionNumber').textContent = currentQuestionIndex + 1;
+            
+            // به‌روزرسانی دکمه‌ها
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const finishBtn = document.getElementById('finishBtn');
+            
+            prevBtn.disabled = currentQuestionIndex === 0;
+            
+            if (currentQuestionIndex === currentExam.questions.length - 1) {
+                nextBtn.classList.add('hidden');
+                finishBtn.classList.remove('hidden');
+            } else {
+                nextBtn.classList.remove('hidden');
+                finishBtn.classList.add('hidden');
+            }
+        }
+        
+        function saveAnswer(answerIndex) {
+            userAnswers[currentQuestionIndex] = answerIndex;
+        }
+        
+        function previousQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                displayCurrentQuestion();
+            }
+        }
+        
+        function nextQuestion() {
+            if (currentQuestionIndex < currentExam.questions.length - 1) {
+                currentQuestionIndex++;
+                displayCurrentQuestion();
+            }
+        }
+        
+        function finishExam() {
+            clearInterval(examTimer);
+            
+            // محاسبه نمره
+            let correctAnswers = 0;
+            for (let i = 0; i < currentExam.questions.length; i++) {
+                if (userAnswers[i] === currentExam.questions[i].correct) {
+                    correctAnswers++;
+                }
+            }
+            
+            const score = Math.round((correctAnswers / currentExam.questions.length) * 100);
+            const passingScores = { bronze: 70, silver: 75, gold: 80 };
+            const passed = score >= passingScores[currentExam.level];
+            
+            // ذخیره نتیجه آزمون
+            const examResult = {
+                id: Date.now().toString(),
+                level: currentExam.level,
+                field: currentExam.field,
+                score: score,
+                passed: passed,
+                date: new Date().toISOString(),
+                correctAnswers: correctAnswers,
+                totalQuestions: currentExam.questions.length
+            };
+            
+            // ذخیره در پروفایل کاربر
+            if (!currentUser.examResults) {
+                currentUser.examResults = [];
+            }
+            currentUser.examResults.push(examResult);
+            
+            // اضافه کردن مدال در صورت قبولی
+            if (passed) {
+                if (!currentUser.medals) {
+                    currentUser.medals = [];
+                }
+                
+                if (!currentUser.medals.includes(currentExam.level)) {
+                    currentUser.medals.push(currentExam.level);
+                }
+            }
+            
+            saveUserData();
+            
+            // نمایش نتیجه
+            document.getElementById('examModal').classList.add('hidden');
+            
+            if (passed) {
+                alert(`🎉 تبریک! شما در آزمون قبول شدید!\n\n📊 نمره شما: ${score}%\n🥇 مدال ${currentExam.level === 'bronze' ? 'برنز' : currentExam.level === 'silver' ? 'نقره' : 'طلا'} به پروفایل شما اضافه شد!`);
+            } else {
+                alert(`❌ متأسفانه در آزمون قبول نشدید.\n\n📊 نمره شما: ${score}%\n📋 نمره قبولی: ${passingScores[currentExam.level]}%\n\nمی‌تونید دوباره تلاش کنید!`);
+            }
+            
+            // به‌روزرسانی نمایش مدال‌ها
+            updateMedalsDisplay();
+            loadExamField();
+        }
+        
+        function updateMedalsDisplay() {
+            try {
+                const medalsContainer = document.getElementById('userMedals');
+                const profileMedalsContainer = document.getElementById('profileMedals');
+                
+                if (!currentUser || !currentUser.medals || currentUser.medals.length === 0) {
+                    if (medalsContainer) {
+                        medalsContainer.innerHTML = '<span class="text-gray-400 text-sm">هنوز مدالی کسب نکرده‌اید</span>';
+                    }
+                    if (profileMedalsContainer) {
+                        profileMedalsContainer.innerHTML = '';
+                    }
+                    return;
+                }
+                
+                const medalIcons = { bronze: '🥉', silver: '🥈', gold: '🥇' };
+                const medalNames = { bronze: 'برنز', silver: 'نقره', gold: 'طلا' };
+                
+                // شمارش مدال‌ها
+                const medalCounts = {};
+                currentUser.medals.forEach(medal => {
+                    medalCounts[medal] = (medalCounts[medal] || 0) + 1;
+                });
+                
+                // نمایش در بخش آزمون‌ها
+                if (medalsContainer) {
+                    medalsContainer.innerHTML = Object.keys(medalCounts).map(medal => 
+                        `<div class="flex items-center gap-1 bg-gray-700 px-3 py-1 rounded-full">
+                            <span class="text-lg">${medalIcons[medal]}</span>
+                            <span class="text-sm text-white">${medalNames[medal]}</span>
+                            ${medalCounts[medal] > 1 ? `<span class="bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">${medalCounts[medal]}</span>` : ''}
+                        </div>`
+                    ).join('');
+                }
+                
+                // نمایش روی تصویر پروفایل
+                if (profileMedalsContainer) {
+                    profileMedalsContainer.innerHTML = Object.keys(medalCounts).map(medal => 
+                        `<div class="relative">
+                            <span class="text-lg">${medalIcons[medal]}</span>
+                            ${medalCounts[medal] > 1 ? `<span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center text-[10px]">${medalCounts[medal]}</span>` : ''}
+                        </div>`
+                    ).join('');
+                }
+            } catch (error) {
+                console.error('Error updating medals display:', error);
+            }
+        }
+        
+        function loadExamField() {
+            try {
+                const examFieldEl = document.getElementById('examField');
+                if (examFieldEl && currentUser && currentUser.profile && currentUser.profile.examField) {
+                    examFieldEl.value = currentUser.profile.examField;
+                }
+            } catch (error) {
+                console.error('Error loading exam field:', error);
+            }
+        }
+        
+        // مدیریت پروژه‌ها برای ایده‌دار
+        function loadIdeaOwnerProjects() {
+            const escrowTransactions = JSON.parse(localStorage.getItem('escrowTransactions')) || [];
+            const userProjects = escrowTransactions.filter(t => t.ideaOwnerId === currentUser.id);
+            const projectsList = document.getElementById('ideaOwnerProjectsList');
+            
+            if (userProjects.length === 0) {
+                projectsList.innerHTML = `
+                    <div class="text-center py-12">
+                        <div class="text-6xl mb-4">📊</div>
+                        <h4 class="text-xl font-bold text-gray-400 mb-2">هنوز پروژه‌ای فعال نیست</h4>
+                        <p class="text-gray-500">پس از خرید ایده‌هایتان، پروژه‌ها اینجا نمایش داده می‌شود</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            projectsList.innerHTML = userProjects.map(project => {
+                const statusColor = project.status === 'pending' ? 'bg-yellow-600' : 
+                                  project.status === 'approved' ? 'bg-blue-600' : 
+                                  project.status === 'released' ? 'bg-green-600' : 'bg-red-600';
+                
+                const statusText = project.status === 'pending' ? 'در انتظار تایید شما' : 
+                                 project.status === 'approved' ? 'در حال اجرا' : 
+                                 project.status === 'released' ? 'تکمیل شده' : 'لغو شده';
+                
+                return `
+                    <div class="bg-gray-800/50 backdrop-blur-lg rounded-xl p-6 border border-orange-500/30">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h4 class="text-xl font-bold text-orange-300">${project.ideaTitle}</h4>
+                                <p class="text-gray-400">سرمایه‌گذار: ${project.investorName}</p>
+                                <p class="text-gray-400">تاریخ شروع: ${new Date(project.createdAt).toLocaleDateString('fa-IR')}</p>
+                            </div>
+                            <span class="${statusColor} text-xs px-3 py-1 rounded-full">${statusText}</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-3 gap-4 text-center mb-4">
+                            <div>
+                                <p class="text-gray-400">مبلغ پروژه</p>
+                                <p class="text-white font-bold">${project.originalAmount.toLocaleString()} تومان</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-400">کارمزد سایت</p>
+                                <p class="text-orange-400 font-bold">${project.platformFee.toLocaleString()} تومان</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-400">درآمد شما</p>
+                                <p class="text-green-400 font-bold">${project.originalAmount.toLocaleString()} تومان</p>
+                            </div>
+                        </div>
+                        
+                        ${project.status === 'pending' ? `
+                            <div class="bg-yellow-600/20 border border-yellow-500 rounded-lg p-4 mb-4">
+                                <h5 class="font-bold text-yellow-300 mb-2">⏳ در انتظار تایید شما</h5>
+                                <p class="text-yellow-200 text-sm mb-3">سرمایه‌گذار ایده شما را خریداری کرده و منتظر شروع همکاری است.</p>
+                                <div class="flex gap-2">
+                                    <button onclick="approveProject('${project.id}')" class="flex-1 bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg transition-colors text-white">
+                                        ✅ تایید و شروع همکاری
+                                    </button>
+                                    <button onclick="rejectProject('${project.id}')" class="flex-1 bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg transition-colors text-white">
+                                        ❌ رد همکاری
+                                    </button>
+                                </div>
+                            </div>
+                        ` : project.status === 'approved' ? `
+                            <div class="bg-blue-600/20 border border-blue-500 rounded-lg p-4 mb-4">
+                                <h5 class="font-bold text-blue-300 mb-2">🚀 پروژه در حال اجرا</h5>
+                                <p class="text-blue-200 text-sm mb-3">همکاری شما با سرمایه‌گذار شروع شده است. پس از تکمیل پروژه، پول آزاد خواهد شد.</p>
+                                <div class="flex gap-2">
+                                    <button onclick="completeProject('${project.id}')" class="flex-1 bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg transition-colors text-white">
+                                        🎉 تکمیل پروژه و دریافت پول
+                                    </button>
+                                    <button onclick="openIdeaOwnerChat('${project.id}', '${project.investorName}', '${project.ideaTitle}')" class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg transition-colors text-white">
+                                        💬 چت
+                                    </button>
+                                </div>
+                            </div>
+                        ` : project.status === 'released' ? `
+                            <div class="bg-green-600/20 border border-green-500 rounded-lg p-4 mb-4">
+                                <h5 class="font-bold text-green-300 mb-2">🎉 پروژه تکمیل شده</h5>
+                                <p class="text-green-200 text-sm mb-3">پول با موفقیت به حساب شما واریز شده است.</p>
+                                ${project.chatEnabled !== false ? `
+                                    <button onclick="openIdeaOwnerChat('${project.id}', '${project.investorName}', '${project.ideaTitle}')" class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg transition-colors text-white">
+                                        💬 چت با سرمایه‌گذار
+                                    </button>
+                                ` : `
+                                    <div class="text-center text-green-300 text-sm">
+                                        ✅ همکاری با موفقیت به پایان رسید
+                                    </div>
+                                `}
+                            </div>
+                        ` : `
+                            <div class="bg-red-600/20 border border-red-500 rounded-lg p-4 text-center">
+                                <h5 class="font-bold text-red-300 mb-2">❌ پروژه لغو شده</h5>
+                                <p class="text-red-200 text-sm">این همکاری لغو شده و پول به سرمایه‌گذار بازگردانده شده است.</p>
+                            </div>
+                        `}
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function approveProject(projectId) {
+            if (confirm('آیا مطمئن هستید که می‌خواهید این همکاری را تایید کنید؟\n\nپس از تایید، پول فوراً به حساب شما واریز می‌شود.')) {
+                const escrowTransactions = JSON.parse(localStorage.getItem('escrowTransactions')) || [];
+                const projectIndex = escrowTransactions.findIndex(t => t.id === projectId);
+                
+                if (projectIndex !== -1) {
+                    const project = escrowTransactions[projectIndex];
+                    
+                    // تغییر وضعیت به تکمیل شده و واریز پول
+                    escrowTransactions[projectIndex].status = 'released';
+                    escrowTransactions[projectIndex].approvedAt = new Date().toISOString();
+                    escrowTransactions[projectIndex].completedAt = new Date().toISOString();
+                    localStorage.setItem('escrowTransactions', JSON.stringify(escrowTransactions));
+                    
+                    // اضافه کردن پول به حساب ایده‌دار (شبیه‌سازی)
+                    if (!currentUser.wallet) {
+                        currentUser.wallet = { balance: 0, transactions: [] };
+                    }
+                    
+                    const transaction = {
+                        id: Date.now().toString(),
+                        type: 'income',
+                        amount: project.originalAmount,
+                        description: `فروش ایده: ${project.ideaTitle}`,
+                        date: new Date().toISOString(),
+                        projectId: projectId
+                    };
+                    
+                    currentUser.wallet.balance += project.originalAmount;
+                    currentUser.wallet.transactions.push(transaction);
+                    saveUserData();
+                    
+                    alert(`🎉 تبریک! همکاری تایید شد!\n\n💰 مبلغ ${project.originalAmount.toLocaleString()} تومان به حساب شما واریز شد.\n💳 موجودی فعلی: ${currentUser.wallet.balance.toLocaleString()} تومان\n\nممنون از همکاری عالی‌تان! 🙏`);
+                    
+                    loadIdeaOwnerProjects();
+                    
+                    // به‌روزرسانی سایر بخش‌ها
+                    loadIdeaOwnerChats();
+                }
+            }
+        }
+        
+        function rejectProject(projectId) {
+            if (confirm('آیا مطمئن هستید که می‌خواهید این همکاری را رد کنید؟\n\nپول به حساب سرمایه‌گذار بازگردانده خواهد شد و امکان چت غیرفعال می‌شود.')) {
+                const escrowTransactions = JSON.parse(localStorage.getItem('escrowTransactions')) || [];
+                const projectIndex = escrowTransactions.findIndex(t => t.id === projectId);
+                
+                if (projectIndex !== -1) {
+                    // تغییر وضعیت و غیرفعال کردن چت
+                    escrowTransactions[projectIndex].status = 'cancelled';
+                    escrowTransactions[projectIndex].rejectedAt = new Date().toISOString();
+                    escrowTransactions[projectIndex].chatEnabled = false; // غیرفعال کردن چت
+                    localStorage.setItem('escrowTransactions', JSON.stringify(escrowTransactions));
+                    
+                    alert('❌ همکاری رد شد!\n\n💰 پول به حساب سرمایه‌گذار بازگردانده شد.\n💬 امکان چت غیرفعال شده است.');
+                    
+                    loadIdeaOwnerProjects();
+                    loadIdeaOwnerChats(); // به‌روزرسانی لیست چت‌ها
+                }
+            }
+        }
+        
+        function completeProject(projectId) {
+            if (confirm('آیا مطمئن هستید که پروژه تکمیل شده است؟\n\nپس از تایید، پول به حساب شما واریز خواهد شد و پروژه بسته می‌شود.')) {
+                const escrowTransactions = JSON.parse(localStorage.getItem('escrowTransactions')) || [];
+                const projectIndex = escrowTransactions.findIndex(t => t.id === projectId);
+                
+                if (projectIndex !== -1) {
+                    escrowTransactions[projectIndex].status = 'released';
+                    escrowTransactions[projectIndex].completedAt = new Date().toISOString();
+                    localStorage.setItem('escrowTransactions', JSON.stringify(escrowTransactions));
+                    
+                    const project = escrowTransactions[projectIndex];
+                    alert(`🎉 تبریک! پروژه تکمیل شد!\n\n💰 مبلغ ${project.originalAmount.toLocaleString()} تومان به حساب شما واریز شد.\n\nممنون از همکاری عالی‌تان! 🙏`);
+                    loadIdeaOwnerProjects();
+                }
+            }
+        }
+        
+        // توابع چت واقعی
+        function loadIdeaOwnerChats() {
+            const escrowTransactions = JSON.parse(localStorage.getItem('escrowTransactions')) || [];
+            // فقط چت‌های فعال (chatEnabled !== false) و مربوط به کاربر فعلی
+            const userChats = escrowTransactions.filter(t => 
+                t.ideaOwnerId === currentUser.id && 
+                t.chatEnabled !== false && 
+                (t.status === 'pending' || t.status === 'approved' || t.status === 'released')
+            );
+            const chatList = document.getElementById('ideaOwnerChatList');
+            
+            if (userChats.length === 0) {
+                chatList.innerHTML = `
+                    <div class="text-center py-12">
+                        <div class="text-6xl mb-4">💬</div>
+                        <h4 class="text-xl font-bold text-gray-400 mb-2">هنوز چتی فعال نیست</h4>
+                        <p class="text-gray-500">پس از خرید ایده توسط سرمایه‌گذاران، چت فعال می‌شود</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            chatList.innerHTML = userChats.map(chat => {
+                const lastMessage = getLastMessage(chat.id);
+                const statusColor = chat.status === 'pending' ? 'bg-yellow-600' : 
+                                  chat.status === 'approved' ? 'bg-blue-600' : 
+                                  chat.status === 'released' ? 'bg-green-600' : 'bg-gray-600';
+                
+                const statusText = chat.status === 'pending' ? 'در انتظار تایید' : 
+                                 chat.status === 'approved' ? 'در حال اجرا' : 
+                                 chat.status === 'released' ? 'تکمیل شده' : 'نامشخص';
+                
+                return `
+                    <div class="bg-gray-800/50 backdrop-blur-lg rounded-xl p-4 border border-green-500/30">
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="flex items-center gap-2">
+                                <h4 class="font-bold text-green-300">${chat.investorName}</h4>
+                                <button onclick="viewInvestorProfile('${chat.investorId}')" class="bg-purple-600 hover:bg-purple-700 px-2 py-1 rounded text-xs transition-colors">👤</button>
+                            </div>
+                            <div class="flex flex-col items-end gap-1">
+                                <span class="text-xs text-gray-400">${new Date(chat.createdAt).toLocaleDateString('fa-IR')}</span>
+                                <span class="${statusColor} text-xs px-2 py-1 rounded-full">${statusText}</span>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-400 mb-2">ایده: ${chat.ideaTitle}</p>
+                        ${lastMessage ? `<p class="text-sm text-gray-300 truncate">${lastMessage}</p>` : '<p class="text-sm text-gray-500">هنوز پیامی ارسال نشده</p>'}
+                        <div class="mt-2">
+                            <button onclick="openIdeaOwnerChat('${chat.id}', '${chat.investorName}', '${chat.ideaTitle}')" class="w-full bg-green-600 hover:bg-green-700 px-3 py-2 rounded-lg transition-colors text-sm">
+                                💬 باز کردن چت
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function openIdeaOwnerChat(escrowId, investorName, ideaTitle) {
+            const chatWindow = document.getElementById('ideaOwnerChatWindow');
+            const chatTitle = document.getElementById('ideaOwnerChatTitle');
+            const chatMessages = document.getElementById('ideaOwnerChatMessages');
+            
+            chatTitle.textContent = `چت با ${investorName} - ${ideaTitle}`;
+            chatWindow.classList.remove('hidden');
+            chatWindow.dataset.escrowId = escrowId;
+            
+            loadChatMessages(escrowId, chatMessages);
+        }
+        
+        function closeIdeaOwnerChat() {
+            document.getElementById('ideaOwnerChatWindow').classList.add('hidden');
+        }
+        
+        function sendIdeaOwnerMessage() {
+            const input = document.getElementById('ideaOwnerChatInput');
+            const escrowId = document.getElementById('ideaOwnerChatWindow').dataset.escrowId;
+            const messagesContainer = document.getElementById('ideaOwnerChatMessages');
+            
+            if (input.value.trim() && escrowId) {
+                const message = input.value.trim();
+                
+                const messageObj = {
+                    id: Date.now().toString(),
+                    senderId: currentUser.id,
+                    senderName: currentUser.name,
+                    message: message,
+                    timestamp: new Date().toISOString(),
+                    escrowId: escrowId
+                };
+                
+                // ذخیره پیام
+                const chatHistory = JSON.parse(localStorage.getItem('chatHistory_' + escrowId)) || [];
+                chatHistory.push(messageObj);
+                localStorage.setItem('chatHistory_' + escrowId, JSON.stringify(chatHistory));
+                
+                // نمایش پیام
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'flex justify-end mb-4';
+                messageDiv.innerHTML = `
+                    <div class="bg-green-600 rounded-lg p-3 max-w-xs">
+                        <p class="text-white">${message}</p>
+                        <p class="text-xs text-green-200 mt-1">${new Date().toLocaleTimeString('fa-IR', {hour: '2-digit', minute: '2-digit'})}</p>
+                    </div>
+                `;
+                messagesContainer.appendChild(messageDiv);
+                input.value = '';
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                
+                // نمایش نوتیفیکیشن برای سرمایه‌گذار
+                showChatNotification('investor');
+            }
+        }
+        
+        function loadChatMessages(escrowId, container) {
+            const chatHistory = JSON.parse(localStorage.getItem('chatHistory_' + escrowId)) || [];
+            
+            if (chatHistory.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-gray-400 py-4">
+                        <p class="text-sm">چت شروع شد 💬</p>
+                        <p class="text-xs mt-1">پیام خود را ارسال کنید</p>
+                    </div>
+                `;
+            } else {
+                const messagesHtml = chatHistory.map(msg => {
+                    const isCurrentUser = msg.senderId === currentUser.id;
+                    return `
+                        <div class="flex ${isCurrentUser ? 'justify-end' : 'justify-start'} mb-4">
+                            <div class="${isCurrentUser ? 'bg-green-600' : 'bg-blue-600'} rounded-lg p-3 max-w-xs">
+                                <p class="text-white">${msg.message}</p>
+                                <p class="text-xs ${isCurrentUser ? 'text-green-200' : 'text-blue-200'} mt-1">${new Date(msg.timestamp).toLocaleTimeString('fa-IR', {hour: '2-digit', minute: '2-digit'})}</p>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                container.innerHTML = messagesHtml;
+            }
+            
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        function getLastMessage(escrowId) {
+            const chatHistory = JSON.parse(localStorage.getItem('chatHistory_' + escrowId)) || [];
+            if (chatHistory.length === 0) return null;
+            
+            const lastMessage = chatHistory[chatHistory.length - 1];
+            return lastMessage.message.length > 30 ? lastMessage.message.substring(0, 30) + '...' : lastMessage.message;
+        }
+        
+        function saveUserData() {
+            try {
+                if (!currentUser || !currentUserType) return;
+                
+                // ذخیره اطلاعات کاربر در پایگاه داده محلی
+                const users = JSON.parse(localStorage.getItem('platformUsers')) || { ideaOwner: [], investor: [] };
+                const userList = users[currentUserType] || [];
+                const userIndex = userList.findIndex(u => u.id === currentUser.id);
+                
+                if (userIndex !== -1) {
+                    userList[userIndex] = currentUser;
+                    users[currentUserType] = userList;
+                    localStorage.setItem('platformUsers', JSON.stringify(users));
+                    saveUserSession();
+                }
+            } catch (error) {
+                console.error('Error saving user data:', error);
+            }
+        }
+        
+        function viewIdeaDetailsForPurchase(ideaId) {
+            // بارگذاری آخرین ایده‌ها از سیستم مشترک
+            const ideas = loadIdeasFromCloud();
+            const idea = ideas.find(i => i.id === ideaId);
+            
+            if (!idea) return;
+            
+            // نمایش مودال خرید
+            const modal = document.getElementById('purchaseModal');
+            modal.dataset.ideaId = ideaId;
+            
+            // به‌روزرسانی اطلاعات مودال
+            modal.querySelector('h4').textContent = idea.title;
+            modal.querySelector('.text-2xl').textContent = `${idea.price.toLocaleString()} تومان`;
+            
+            modal.classList.remove('hidden');
+        }
+        
+        function showPurchaseModal() {
+            document.getElementById('purchaseModal').classList.remove('hidden');
+        }
+        
+        function editProfile() {
+            showProfileEditModal('ideaOwner');
+        }
+        
+        function editInvestorProfile() {
+            showProfileEditModal('investor');
+        }
+        
+        function showProfileEditModal(userType) {
+            const modal = document.createElement('div');
+            modal.id = 'profileEditModal';
+            modal.className = 'fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50';
+            
+            const profile = currentUser.profile || {};
+            
+            if (userType === 'ideaOwner') {
+                modal.innerHTML = `
+                    <div class="bg-gray-800 rounded-xl p-8 max-w-md w-full border border-purple-500/30">
+                        <h3 class="text-2xl font-bold text-purple-300 mb-6 text-center">ویرایش پروفایل</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-gray-300 mb-2">نام و نام خانوادگی</label>
+                                <input type="text" id="editName" value="${currentUser.name || ''}" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-3 text-white">
+                            </div>
+                            <div>
+                                <label class="block text-gray-300 mb-2">تخصص</label>
+                                <input type="text" id="editSpecialty" value="${profile.specialty || ''}" placeholder="مثال: توسعه نرم‌افزار" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-3 text-white">
+                            </div>
+                            <div>
+                                <label class="block text-gray-300 mb-2">شماره تلفن</label>
+                                <input type="tel" id="editPhone" value="${profile.phone || ''}" placeholder="09123456789" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-3 text-white">
+                            </div>
+                            <div>
+                                <label class="block text-gray-300 mb-2">شهر</label>
+                                <input type="text" id="editCity" value="${profile.city || ''}" placeholder="تهران" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-3 text-white">
+                            </div>
+                            <div>
+                                <label class="block text-gray-300 mb-2">سابقه کار (سال)</label>
+                                <input type="number" id="editExperience" value="${profile.experience || ''}" placeholder="5" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-3 text-white">
+                            </div>
+                            <div>
+                                <label class="block text-gray-300 mb-2">درباره من</label>
+                                <textarea id="editBio" rows="3" placeholder="توضیح کوتاهی درباره خودتان..." class="w-full bg-gray-700 border border-gray-600 rounded-lg p-3 text-white resize-none">${profile.bio || ''}</textarea>
+                            </div>
+                        </div>
+                        <div class="flex gap-4 mt-6">
+                            <button onclick="closeProfileEditModal()" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-3 rounded-lg transition-colors">انصراف</button>
+                            <button onclick="saveProfile('ideaOwner')" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg transition-colors">ذخیره</button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                modal.innerHTML = `
+                    <div class="bg-gray-800 rounded-xl p-8 max-w-md w-full border border-blue-500/30">
+                        <h3 class="text-2xl font-bold text-blue-300 mb-6 text-center">ویرایش پروفایل</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-gray-300 mb-2">نام و نام خانوادگی</label>
+                                <input type="text" id="editName" value="${currentUser.name || ''}" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-3 text-white">
+                            </div>
+                            <div>
+                                <label class="block text-gray-300 mb-2">شماره تلفن</label>
+                                <input type="tel" id="editPhone" value="${profile.phone || ''}" placeholder="09123456789" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-3 text-white">
+                            </div>
+                            <div>
+                                <label class="block text-gray-300 mb-2">شهر</label>
+                                <input type="text" id="editCity" value="${profile.city || ''}" placeholder="تهران" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-3 text-white">
+                            </div>
+                            <div>
+                                <label class="block text-gray-300 mb-2">بودجه سرمایه‌گذاری</label>
+                                <select id="editBudget" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-3 text-white">
+                                    <option value="">انتخاب کنید</option>
+                                    <option value="کمتر از 10 میلیون" ${profile.budget === 'کمتر از 10 میلیون' ? 'selected' : ''}>کمتر از 10 میلیون</option>
+                                    <option value="10 تا 50 میلیون" ${profile.budget === '10 تا 50 میلیون' ? 'selected' : ''}>10 تا 50 میلیون</option>
+                                    <option value="50 تا 100 میلیون" ${profile.budget === '50 تا 100 میلیون' ? 'selected' : ''}>50 تا 100 میلیون</option>
+                                    <option value="بیش از 100 میلیون" ${profile.budget === 'بیش از 100 میلیون' ? 'selected' : ''}>بیش از 100 میلیون</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-gray-300 mb-2">علایق سرمایه‌گذاری</label>
+                                <textarea id="editInterests" rows="3" placeholder="مثال: فناوری، کسب و کار، سلامت..." class="w-full bg-gray-700 border border-gray-600 rounded-lg p-3 text-white resize-none">${profile.interests || ''}</textarea>
+                            </div>
+                        </div>
+                        <div class="flex gap-4 mt-6">
+                            <button onclick="closeProfileEditModal()" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-3 rounded-lg transition-colors">انصراف</button>
+                            <button onclick="saveProfile('investor')" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg transition-colors">ذخیره</button>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            document.body.appendChild(modal);
+        }
+        
+        function closeProfileEditModal() {
+            const modal = document.getElementById('profileEditModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+        
+        function saveProfile(userType) {
+            const name = document.getElementById('editName').value.trim();
+            const phone = document.getElementById('editPhone').value.trim();
+            const city = document.getElementById('editCity').value.trim();
+            
+            if (!name) {
+                alert('لطفاً نام و نام خانوادگی را وارد کنید');
+                return;
+            }
+            
+            // به‌روزرسانی اطلاعات کاربر
+            currentUser.name = name;
+            
+            if (!currentUser.profile) {
+                currentUser.profile = {};
+            }
+            
+            currentUser.profile.phone = phone;
+            currentUser.profile.city = city;
+            
+            if (userType === 'ideaOwner') {
+                const specialty = document.getElementById('editSpecialty').value.trim();
+                const experience = document.getElementById('editExperience').value.trim();
+                const bio = document.getElementById('editBio').value.trim();
+                
+                currentUser.profile.specialty = specialty;
+                currentUser.profile.experience = experience;
+                currentUser.profile.bio = bio;
+            } else {
+                const budget = document.getElementById('editBudget').value;
+                const interests = document.getElementById('editInterests').value.trim();
+                
+                currentUser.profile.budget = budget;
+                currentUser.profile.interests = interests;
+            }
+            
+            // ذخیره در localStorage
+            const users = JSON.parse(localStorage.getItem('platformUsers')) || { ideaOwner: [], investor: [] };
+            const userList = users[currentUserType] || [];
+            const userIndex = userList.findIndex(u => u.id === currentUser.id);
+            
+            if (userIndex !== -1) {
+                userList[userIndex] = currentUser;
+                users[currentUserType] = userList;
+                localStorage.setItem('platformUsers', JSON.stringify(users));
+                
+                // به‌روزرسانی جلسه کاربر
+                saveUserSession();
+            }
+            
+            // به‌روزرسانی نمایش پروفایل
+            if (userType === 'ideaOwner') {
+                updateUserProfile();
+            } else {
+                updateInvestorProfile();
+            }
+            
+            closeProfileEditModal();
+            
+            // نمایش پیام موفقیت
+            const successDiv = document.createElement('div');
+            successDiv.className = 'fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+            successDiv.textContent = '✅ پروفایل با موفقیت به‌روزرسانی شد!';
+            document.body.appendChild(successDiv);
+            
+            setTimeout(() => {
+                successDiv.remove();
+            }, 3000);
+        }
+        
+        function editIdea(ideaId) {
+            alert('ویرایش ایده - این بخش در نسخه بعدی اضافه خواهد شد');
+        }
+        
+        function filterIdeas() {
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            
+            // بارگذاری آخرین ایده‌ها از سیستم مشترک
+            const ideas = loadIdeasFromCloud();
+            let filteredIdeas = ideas.filter(idea => idea.status === 'تایید شده' && idea.ownerId !== currentUser.id);
+            
+            if (categoryFilter) {
+                filteredIdeas = filteredIdeas.filter(idea => idea.category === categoryFilter);
+            }
+            
+            const container = document.getElementById('availableIdeasContainer');
+            
+            if (filteredIdeas.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12">
+                        <div class="text-6xl mb-4">🔍</div>
+                        <h4 class="text-xl font-bold text-gray-400 mb-2">ایده‌ای با این فیلترها یافت نشد</h4>
+                        <p class="text-gray-500">فیلترها را تغییر دهید یا بعداً دوباره تلاش کنید</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = filteredIdeas.map(idea => {
+                // نمایش مدال‌های ایده‌دار
+                const medalIcons = { bronze: '🥉', silver: '🥈', gold: '🥇' };
+                const medalsHtml = idea.ownerMedals && idea.ownerMedals.length > 0 ? 
+                    idea.ownerMedals.map(medal => `<span class="text-lg">${medalIcons[medal]}</span>`).join('') : '';
+                
+                return `
+                    <div class="bg-gray-800/50 backdrop-blur-lg rounded-xl p-6 border border-purple-500/30 card-hover">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <div class="flex items-center gap-2 mb-2">
+                                    <h4 class="text-xl font-bold text-purple-300">${idea.title}</h4>
+                                    ${medalsHtml ? `<div class="flex gap-1">${medalsHtml}</div>` : ''}
+                                </div>
+                                <p class="text-gray-400">دسته: ${idea.category} | ایده‌دار: ${idea.ownerName}</p>
+                            </div>
+                        </div>
+                        <p class="text-gray-300 mb-4">${idea.description.substring(0, 150)}...</p>
+                        <div class="flex justify-between items-center">
+                            <div class="ai-indicator text-xs px-3 py-1 rounded-full text-white">
+                                🤖 تایید شده توسط هوش مصنوعی
+                            </div>
+                            <div class="flex gap-2">
+                                <span class="text-green-400 font-bold">${idea.price.toLocaleString()} تومان</span>
+                                <button onclick="viewOwnerProfile('${idea.ownerId}')" class="bg-purple-600 hover:bg-purple-700 px-3 py-2 rounded-lg transition-colors text-sm">👤 پروفایل</button>
+                                <button onclick="viewIdeaDetailsForPurchase('${idea.id}')" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors">مشاهده جزئیات</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function showPaymentDetails(method) {
+            const paymentDetails = document.getElementById('paymentDetails');
+            const fiatPayment = document.getElementById('fiatPayment');
+            const cryptoPayment = document.getElementById('cryptoPayment');
+            
+            paymentDetails.classList.remove('hidden');
+            
+            if (method === 'fiat') {
+                fiatPayment.classList.remove('hidden');
+                cryptoPayment.classList.add('hidden');
+            } else {
+                fiatPayment.classList.add('hidden');
+                cryptoPayment.classList.remove('hidden');
+            }
+        }
+        
+        function closePurchaseModal() {
+            document.getElementById('purchaseModal').classList.add('hidden');
+            
+            // ریست کردن فرم پرداخت
+            const paymentDetails = document.getElementById('paymentDetails');
+            const fiatPayment = document.getElementById('fiatPayment');
+            const cryptoPayment = document.getElementById('cryptoPayment');
+            
+            paymentDetails.classList.add('hidden');
+            fiatPayment.classList.add('hidden');
+            cryptoPayment.classList.add('hidden');
+            
+            // پاک کردن انتخاب روش پرداخت
+            const paymentRadios = document.querySelectorAll('input[name="payment"]');
+            paymentRadios.forEach(radio => radio.checked = false);
+        }
+        
+        function processPurchase() {
+            const paymentMethod = document.querySelector('input[name="payment"]:checked');
+            if (!paymentMethod) {
+                alert('لطفاً روش پرداخت را انتخاب کنید');
+                return;
+            }
+            
+            const currentIdeaId = document.getElementById('purchaseModal').dataset.ideaId;
+            // بارگذاری آخرین ایده‌ها از سیستم مشترک
+            const ideas = loadIdeasFromCloud();
+            const idea = ideas.find(i => i.id === currentIdeaId);
+            
+            if (!idea) {
+                alert('خطا در یافتن ایده');
+                return;
+            }
+            
+            // محاسبه مبلغ کل (قیمت + 10% کارمزد)
+            const totalAmount = Math.round(idea.price * 1.1);
+            const platformFee = totalAmount - idea.price;
+            
+            // ایجاد تراکنش امانی
+            const escrowTransaction = {
+                id: Date.now().toString(),
+                ideaId: idea.id,
+                ideaTitle: idea.title,
+                ideaOwnerId: idea.ownerId,
+                ideaOwnerName: idea.ownerName,
+                investorId: currentUser.id,
+                investorName: currentUser.name,
+                originalAmount: idea.price,
+                platformFee: platformFee,
+                totalAmount: totalAmount,
+                status: 'pending', // pending, approved, released, cancelled
+                createdAt: new Date().toISOString(),
+                paymentMethod: paymentMethod.value,
+                chatEnabled: true
+            };
+            
+            // ذخیره تراکنش امانی
+            const escrowTransactions = JSON.parse(localStorage.getItem('escrowTransactions')) || [];
+            escrowTransactions.push(escrowTransaction);
+            localStorage.setItem('escrowTransactions', JSON.stringify(escrowTransactions));
+            
+            // ثبت سرمایه‌گذاری
+            const investment = {
+                id: Date.now().toString(),
+                ideaId: idea.id,
+                ideaTitle: idea.title,
+                amount: totalAmount,
+                originalAmount: idea.price,
+                platformFee: platformFee,
+                purchaseDate: new Date().toISOString(),
+                paymentMethod: paymentMethod.value,
+                status: 'escrow', // escrow, active, completed
+                escrowId: escrowTransaction.id
+            };
+            
+            const userInvestments = JSON.parse(localStorage.getItem('userInvestments_' + currentUser.id)) || [];
+            userInvestments.push(investment);
+            localStorage.setItem('userInvestments_' + currentUser.id, JSON.stringify(userInvestments));
+            
+            alert(`✅ پرداخت با موفقیت انجام شد!\n\n💰 مبلغ کل: ${totalAmount.toLocaleString()} تومان\n💡 قیمت ایده: ${idea.price.toLocaleString()} تومان\n🏦 کارمزد سایت: ${platformFee.toLocaleString()} تومان\n\n🔒 پول در صندوق امانات نگهداری می‌شود\n💬 اکنون می‌تونید با ایده‌دار چت کنید!`);
+            
+            closePurchaseModal();
+            
+            // بازگشت به داشبورد و نمایش صندوق امانات
+            showInvestorSection('escrow');
+            
+            // به‌روزرسانی نمایش‌ها
+            loadEscrowTransactions();
+            loadUserInvestments();
+            loadInvestorChats();
+        }
+        
+        function loadEscrowTransactions() {
+            const escrowTransactions = JSON.parse(localStorage.getItem('escrowTransactions')) || [];
+            const userTransactions = escrowTransactions.filter(t => t.investorId === currentUser.id);
+            const container = document.getElementById('escrowTransactionsContainer');
+            
+            if (userTransactions.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12">
+                        <div class="text-6xl mb-4">🏦</div>
+                        <h4 class="text-xl font-bold text-gray-400 mb-2">هیچ تراکنش امانی موجود نیست</h4>
+                        <p class="text-gray-500">پس از خرید ایده، پول در صندوق امانات نگهداری می‌شود</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = userTransactions.map(transaction => {
+                const statusColor = transaction.status === 'pending' ? 'bg-yellow-600' : 
+                                  transaction.status === 'approved' ? 'bg-blue-600' : 
+                                  transaction.status === 'released' ? 'bg-green-600' : 'bg-red-600';
+                
+                const statusText = transaction.status === 'pending' ? 'در انتظار تایید' : 
+                                 transaction.status === 'approved' ? 'تایید شده' : 
+                                 transaction.status === 'released' ? 'آزاد شده' : 'لغو شده';
+                
+                return `
+                    <div class="bg-gray-800/50 backdrop-blur-lg rounded-xl p-6 border border-blue-500/30">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h4 class="text-xl font-bold text-blue-300">${transaction.ideaTitle}</h4>
+                                <p class="text-gray-400">ایده‌دار: ${transaction.ideaOwnerName}</p>
+                                <p class="text-gray-400">تاریخ: ${new Date(transaction.createdAt).toLocaleDateString('fa-IR')}</p>
+                            </div>
+                            <span class="${statusColor} text-xs px-3 py-1 rounded-full">${statusText}</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-4 text-center mb-4">
+                            <div>
+                                <p class="text-gray-400">قیمت ایده</p>
+                                <p class="text-white font-bold">${transaction.originalAmount.toLocaleString()} تومان</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-400">کارمزد سایت</p>
+                                <p class="text-orange-400 font-bold">${transaction.platformFee.toLocaleString()} تومان</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-400">مبلغ کل</p>
+                                <p class="text-green-400 font-bold">${transaction.totalAmount.toLocaleString()} تومان</p>
+                            </div>
+                        </div>
+                        ${transaction.status === 'pending' ? `
+                            <div class="flex gap-2">
+                                <button onclick="approveEscrow('${transaction.id}')" class="flex-1 bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg transition-colors">تایید همکاری</button>
+                                <button onclick="cancelEscrow('${transaction.id}')" class="flex-1 bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg transition-colors">لغو</button>
+                            </div>
+                        ` : transaction.status === 'approved' ? `
+                            <div class="bg-blue-600/20 border border-blue-500 rounded-lg p-3 text-blue-300 text-sm text-center">
+                                ✅ همکاری تایید شده - در انتظار تایید ایده‌دار برای آزادسازی پول
+                            </div>
+                        ` : transaction.status === 'released' ? `
+                            <div class="bg-green-600/20 border border-green-500 rounded-lg p-3 text-green-300 text-sm text-center">
+                                🎉 پروژه تکمیل شده - پول آزاد شده
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // توابع چت سرمایه‌گذار
+        function loadInvestorChats() {
+            const escrowTransactions = JSON.parse(localStorage.getItem('escrowTransactions')) || [];
+            // فقط چت‌های فعال (chatEnabled !== false) و مربوط به کاربر فعلی
+            const userChats = escrowTransactions.filter(t => 
+                t.investorId === currentUser.id && 
+                t.chatEnabled !== false && 
+                (t.status === 'pending' || t.status === 'approved' || t.status === 'released')
+            );
+            const chatList = document.getElementById('investorChatList');
+            
+            if (userChats.length === 0) {
+                chatList.innerHTML = `
+                    <div class="text-center py-12">
+                        <div class="text-6xl mb-4">💬</div>
+                        <h4 class="text-xl font-bold text-gray-400 mb-2">هنوز چتی فعال نیست</h4>
+                        <p class="text-gray-500">پس از خرید ایده، چت با ایده‌دار فعال می‌شود</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            chatList.innerHTML = userChats.map(chat => {
+                const lastMessage = getLastMessage(chat.id);
+                const statusColor = chat.status === 'pending' ? 'bg-yellow-600' : 
+                                  chat.status === 'approved' ? 'bg-blue-600' : 
+                                  chat.status === 'released' ? 'bg-green-600' : 'bg-gray-600';
+                
+                const statusText = chat.status === 'pending' ? 'در انتظار تایید' : 
+                                 chat.status === 'approved' ? 'در حال اجرا' : 
+                                 chat.status === 'released' ? 'تکمیل شده' : 'نامشخص';
+                
+                return `
+                    <div class="bg-gray-800/50 backdrop-blur-lg rounded-xl p-4 border border-green-500/30">
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="flex items-center gap-2">
+                                <h4 class="font-bold text-green-300">${chat.ideaOwnerName}</h4>
+                                <button onclick="viewOwnerProfile('${chat.ideaOwnerId}')" class="bg-purple-600 hover:bg-purple-700 px-2 py-1 rounded text-xs transition-colors">👤</button>
+                            </div>
+                            <div class="flex flex-col items-end gap-1">
+                                <span class="text-xs text-gray-400">${new Date(chat.createdAt).toLocaleDateString('fa-IR')}</span>
+                                <span class="${statusColor} text-xs px-2 py-1 rounded-full">${statusText}</span>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-400 mb-2">ایده: ${chat.ideaTitle}</p>
+                        ${lastMessage ? `<p class="text-sm text-gray-300 truncate">${lastMessage}</p>` : '<p class="text-sm text-gray-500">هنوز پیامی ارسال نشده</p>'}
+                        <div class="mt-2">
+                            <button onclick="openInvestorChat('${chat.id}', '${chat.ideaOwnerName}', '${chat.ideaTitle}')" class="w-full bg-green-600 hover:bg-green-700 px-3 py-2 rounded-lg transition-colors text-sm">
+                                💬 باز کردن چت
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function openInvestorChat(escrowId, ideaOwnerName, ideaTitle) {
+            const chatWindow = document.getElementById('investorChatWindow');
+            const chatTitle = document.getElementById('investorChatTitle');
+            const chatMessages = document.getElementById('investorChatMessages');
+            
+            chatTitle.textContent = `چت با ${ideaOwnerName} - ${ideaTitle}`;
+            chatWindow.classList.remove('hidden');
+            chatWindow.dataset.escrowId = escrowId;
+            
+            loadChatMessages(escrowId, chatMessages);
+        }
+        
+        function closeInvestorChat() {
+            document.getElementById('investorChatWindow').classList.add('hidden');
+        }
+        
+        function sendInvestorMessage() {
+            const input = document.getElementById('investorChatInput');
+            const escrowId = document.getElementById('investorChatWindow').dataset.escrowId;
+            const messagesContainer = document.getElementById('investorChatMessages');
+            
+            if (input.value.trim() && escrowId) {
+                const message = input.value.trim();
+                
+                const messageObj = {
+                    id: Date.now().toString(),
+                    senderId: currentUser.id,
+                    senderName: currentUser.name,
+                    message: message,
+                    timestamp: new Date().toISOString(),
+                    escrowId: escrowId
+                };
+                
+                // ذخیره پیام
+                const chatHistory = JSON.parse(localStorage.getItem('chatHistory_' + escrowId)) || [];
+                chatHistory.push(messageObj);
+                localStorage.setItem('chatHistory_' + escrowId, JSON.stringify(chatHistory));
+                
+                // نمایش پیام
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'flex justify-end mb-4';
+                messageDiv.innerHTML = `
+                    <div class="bg-blue-600 rounded-lg p-3 max-w-xs">
+                        <p class="text-white">${message}</p>
+                        <p class="text-xs text-blue-200 mt-1">${new Date().toLocaleTimeString('fa-IR', {hour: '2-digit', minute: '2-digit'})}</p>
+                    </div>
+                `;
+                messagesContainer.appendChild(messageDiv);
+                input.value = '';
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                
+                // نمایش نوتیفیکیشن برای ایده‌دار
+                showChatNotification('ideaOwner');
+            }
+        }
+        
+        function enableInvestorChat(escrowId) {
+            // این تابع دیگر نیاز نیست چون چت از طریق loadInvestorChats مدیریت می‌شود
+            loadInvestorChats();
+        }
+        
+        function sendChatMessage(userType, escrowId) {
+            let input, messagesContainer;
+            
+            if (userType === 'investor') {
+                input = document.getElementById('investorChatInput');
+                messagesContainer = document.getElementById('chatMessagesContainer');
+            } else {
+                input = document.getElementById('ideaOwnerChatInput');
+                messagesContainer = document.getElementById('chatMessagesContainer');
+            }
+            
+            if (input && !input.disabled) {
+                const message = input.value.trim();
+                if (message) {
+                    const messageObj = {
+                        id: Date.now().toString(),
+                        senderId: currentUser.id,
+                        senderName: currentUser.name,
+                        message: message,
+                        timestamp: new Date().toISOString(),
+                        escrowId: escrowId
+                    };
+                    
+                    // ذخیره پیام
+                    const chatHistory = JSON.parse(localStorage.getItem('chatHistory_' + escrowId)) || [];
+                    chatHistory.push(messageObj);
+                    localStorage.setItem('chatHistory_' + escrowId, JSON.stringify(chatHistory));
+                    
+                    // نمایش پیام
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'flex justify-end mb-4';
+                    messageDiv.innerHTML = `
+                        <div class="bg-green-600 rounded-lg p-3 max-w-xs">
+                            <p class="text-white">${message}</p>
+                            <p class="text-xs text-green-200 mt-1">${new Date().toLocaleTimeString('fa-IR', {hour: '2-digit', minute: '2-digit'})}</p>
+                        </div>
+                    `;
+                    messagesContainer.appendChild(messageDiv);
+                    input.value = '';
+                    messagesContainer.parentElement.scrollTop = messagesContainer.parentElement.scrollHeight;
+                    
+                    // نمایش نوتیفیکیشن برای طرف مقابل
+                    if (userType === 'investor') {
+                        showChatNotification('ideaOwner');
+                    } else {
+                        showChatNotification('investor');
+                    }
+                }
+            }
+        }
+        
+        function getAutoReply(message) {
+            const replies = [
+                'ممنون از پیامتون! بزودی جزئیات بیشتری ارسال می‌کنم 📋',
+                'سلام! خوشحالم که علاقه‌مند هستید. چه سوالی دارید؟ 🤔',
+                'عالیه! بیایید در مورد جزئیات بیشتر صحبت کنیم 💡',
+                'ممنون از اعتمادتون. آماده همکاری هستم! 🤝',
+                'سوال خوبی پرسیدید. بذارید توضیح بدم... 📝'
+            ];
+            return replies[Math.floor(Math.random() * replies.length)];
+        }
+        
+        function approveEscrow(escrowId) {
+            const escrowTransactions = JSON.parse(localStorage.getItem('escrowTransactions')) || [];
+            const transactionIndex = escrowTransactions.findIndex(t => t.id === escrowId);
+            
+            if (transactionIndex !== -1) {
+                escrowTransactions[transactionIndex].status = 'approved';
+                localStorage.setItem('escrowTransactions', JSON.stringify(escrowTransactions));
+                
+                alert('✅ همکاری تایید شد!\n\nحالا در انتظار تایید ایده‌دار برای آزادسازی پول هستیم.');
+                loadEscrowTransactions();
+            }
+        }
+        
+        function cancelEscrow(escrowId) {
+            if (confirm('آیا مطمئن هستید که می‌خواهید این همکاری را لغو کنید؟\n\nپول به حساب شما بازگردانده خواهد شد.')) {
+                const escrowTransactions = JSON.parse(localStorage.getItem('escrowTransactions')) || [];
+                const transactionIndex = escrowTransactions.findIndex(t => t.id === escrowId);
+                
+                if (transactionIndex !== -1) {
+                    escrowTransactions[transactionIndex].status = 'cancelled';
+                    localStorage.setItem('escrowTransactions', JSON.stringify(escrowTransactions));
+                    
+                    alert('❌ همکاری لغو شد!\n\nپول به حساب شما بازگردانده شد.');
+                    loadEscrowTransactions();
+                }
+            }
+        }
+        
+        // توابع چت پشتیبانی
+        function toggleSupportChat() {
+            const chatWindow = document.getElementById('supportChatWindow');
+            chatWindow.classList.toggle('hidden');
+        }
+        
+        function askPredefinedQuestion(question) {
+            const messagesContainer = document.getElementById('supportChatMessages');
+            
+            // اضافه کردن سوال کاربر
+            const userMessage = document.createElement('div');
+            userMessage.className = 'flex justify-end';
+            userMessage.innerHTML = `
+                <div class="bg-purple-600 rounded-lg p-3 max-w-xs">
+                    <p class="text-white text-sm">${question}</p>
+                </div>
+            `;
+            messagesContainer.appendChild(userMessage);
+            
+            // پاسخ خودکار
+            setTimeout(() => {
+                const botResponse = document.createElement('div');
+                botResponse.className = 'flex justify-start';
+                
+                let answer = '';
+                switch(question) {
+                    case 'چطور ایده ثبت کنم؟':
+                        answer = 'برای ثبت ایده، وارد داشبورد ایده‌دار شوید و روی "ثبت ایده جدید" کلیک کنید. فرم را تکمیل کرده و ایده خود را ثبت کنید. 📝';
+                        break;
+                    case 'چطور سرمایه‌گذاری کنم؟':
+                        answer = 'در بخش "مشاهده ایده‌ها" می‌تونید ایده‌های موجود را ببینید و روی "مشاهده جزئیات" کلیک کنید تا ایده را خریداری کنید. 💰';
+                        break;
+                    case 'آزمون‌های تخصصی چیست؟':
+                        answer = 'آزمون‌های تخصصی برای سنجش مهارت ایده‌داران طراحی شده و توسط هوش مصنوعی تولید می‌شود. سه سطح متوسط، خوب و عالی داریم. 🎓';
+                        break;
+                    case 'نحوه پرداخت چگونه است؟':
+                        answer = 'پرداخت با تومان/دلار و بیت‌کوین امکان‌پذیر است. سیستم پرداخت کاملاً امن و رمزنگاری شده است. 🔒';
+                        break;
+                    case 'امنیت پلتفرم چطور است؟':
+                        answer = 'پلتفرم ما از بالاترین استانداردهای امنیتی استفاده می‌کند. تمام اطلاعات رمزنگاری شده و محفوظ نگهداری می‌شود. 🛡️';
+                        break;
+                    default:
+                        answer = 'سوال جالبی پرسیدید! تیم پشتیبانی ما در اسرع وقت پاسخ خواهد داد. 🤝';
+                }
+                
+                botResponse.innerHTML = `
+                    <div class="bg-blue-600 rounded-lg p-3 max-w-xs">
+                        <p class="text-white text-sm">${answer}</p>
+                    </div>
+                `;
+                messagesContainer.appendChild(botResponse);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }, 1000);
+            
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        function sendSupportMessage() {
+            const input = document.getElementById('supportChatInput');
+            const message = input.value.trim();
+            
+            if (message) {
+                const messagesContainer = document.getElementById('supportChatMessages');
+                
+                // پیام کاربر
+                const userMessage = document.createElement('div');
+                userMessage.className = 'flex justify-end';
+                userMessage.innerHTML = `
+                    <div class="bg-purple-600 rounded-lg p-3 max-w-xs">
+                        <p class="text-white text-sm">${message}</p>
+                    </div>
+                `;
+                messagesContainer.appendChild(userMessage);
+                
+                input.value = '';
+                
+                // پاسخ خودکار
+                setTimeout(() => {
+                    const botResponse = document.createElement('div');
+                    botResponse.className = 'flex justify-start';
+                    botResponse.innerHTML = `
+                        <div class="bg-blue-600 rounded-lg p-3 max-w-xs">
+                            <p class="text-white text-sm">ممنون از پیامتون! تیم پشتیبانی ما در اسرع وقت بررسی کرده و پاسخ خواهد داد. 🙏</p>
+                        </div>
+                    `;
+                    messagesContainer.appendChild(botResponse);
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }, 1500);
+                
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+        }
+        
+        // توابع مشاهده پروفایل
+        function viewOwnerProfile(ownerId) {
+            const users = JSON.parse(localStorage.getItem('platformUsers')) || { ideaOwner: [], investor: [] };
+            const owner = users.ideaOwner.find(u => u.id === ownerId);
+            
+            if (!owner) {
+                alert('پروفایل یافت نشد');
+                return;
+            }
+            
+            showProfileModal(owner, 'ideaOwner');
+        }
+        
+        function viewInvestorProfile(investorId) {
+            const users = JSON.parse(localStorage.getItem('platformUsers')) || { ideaOwner: [], investor: [] };
+            const investor = users.investor.find(u => u.id === investorId);
+            
+            if (!investor) {
+                alert('پروفایل یافت نشد');
+                return;
+            }
+            
+            showProfileModal(investor, 'investor');
+        }
+        
+        function showProfileModal(user, userType) {
+            const modal = document.createElement('div');
+            modal.id = 'profileViewModal';
+            modal.className = 'fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50';
+            
+            const profile = user.profile || {};
+            const medals = user.medals || [];
+            
+            // شمارش مدال‌ها
+            const medalCounts = {};
+            medals.forEach(medal => {
+                medalCounts[medal] = (medalCounts[medal] || 0) + 1;
+            });
+            
+            const medalIcons = { bronze: '🥉', silver: '🥈', gold: '🥇' };
+            const medalNames = { bronze: 'برنز', silver: 'نقره', gold: 'طلا' };
+            
+            const medalsHtml = Object.keys(medalCounts).length > 0 ? 
+                Object.keys(medalCounts).map(medal => 
+                    `<div class="flex items-center gap-1 bg-gray-700 px-2 py-1 rounded-full text-sm">
+                        <span>${medalIcons[medal]}</span>
+                        <span class="text-white">${medalNames[medal]}</span>
+                        ${medalCounts[medal] > 1 ? `<span class="bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">${medalCounts[medal]}</span>` : ''}
+                    </div>`
+                ).join('') : '<span class="text-gray-400 text-sm">هنوز مدالی کسب نکرده</span>';
+            
+            if (userType === 'ideaOwner') {
+                modal.innerHTML = `
+                    <div class="bg-gray-800 rounded-xl p-8 max-w-md w-full border border-purple-500/30">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-2xl font-bold text-purple-300">پروفایل ایده‌دار</h3>
+                            <button onclick="closeProfileViewModal()" class="text-gray-400 hover:text-white text-2xl">✕</button>
+                        </div>
+                        
+                        <div class="text-center mb-6">
+                            <div class="relative w-24 h-24 mx-auto mb-4">
+                                <div class="w-24 h-24 bg-gray-600 rounded-full flex items-center justify-center">
+                                    <span class="text-3xl">👤</span>
+                                </div>
+                                <div class="absolute -top-1 -right-1 flex flex-wrap gap-1">
+                                    ${Object.keys(medalCounts).map(medal => 
+                                        `<div class="relative">
+                                            <span class="text-sm">${medalIcons[medal]}</span>
+                                            ${medalCounts[medal] > 1 ? `<span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-3 h-3 flex items-center justify-center text-[8px]">${medalCounts[medal]}</span>` : ''}
+                                        </div>`
+                                    ).join('')}
+                                </div>
+                            </div>
+                            <h4 class="text-xl font-bold text-white">${user.name}</h4>
+                            <p class="text-purple-300">${profile.specialty || 'ایده‌دار'}</p>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <span class="text-gray-400 text-sm">شهر:</span>
+                                    <p class="text-white">${profile.city || '-'}</p>
+                                </div>
+                                <div>
+                                    <span class="text-gray-400 text-sm">سابقه:</span>
+                                    <p class="text-white">${profile.experience ? profile.experience + ' سال' : '-'}</p>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <span class="text-gray-400 text-sm">درباره:</span>
+                                <p class="text-white text-sm mt-1">${profile.bio || 'اطلاعاتی وارد نشده'}</p>
+                            </div>
+                            
+                            <div>
+                                <span class="text-gray-400 text-sm">مدال‌های کسب شده:</span>
+                                <div class="flex flex-wrap gap-2 mt-2">
+                                    ${medalsHtml}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button onclick="closeProfileViewModal()" class="w-full mt-6 bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg transition-colors">
+                            بستن
+                        </button>
+                    </div>
+                `;
+            } else {
+                modal.innerHTML = `
+                    <div class="bg-gray-800 rounded-xl p-8 max-w-md w-full border border-blue-500/30">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-2xl font-bold text-blue-300">پروفایل سرمایه‌گذار</h3>
+                            <button onclick="closeProfileViewModal()" class="text-gray-400 hover:text-white text-2xl">✕</button>
+                        </div>
+                        
+                        <div class="text-center mb-6">
+                            <div class="w-24 h-24 mx-auto mb-4 bg-gray-600 rounded-full flex items-center justify-center">
+                                <span class="text-3xl">👤</span>
+                            </div>
+                            <h4 class="text-xl font-bold text-white">${user.name}</h4>
+                            <p class="text-blue-300">سرمایه‌گذار</p>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <span class="text-gray-400 text-sm">شهر:</span>
+                                    <p class="text-white">${profile.city || '-'}</p>
+                                </div>
+                                <div>
+                                    <span class="text-gray-400 text-sm">بودجه:</span>
+                                    <p class="text-white">${profile.budget || '-'}</p>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <span class="text-gray-400 text-sm">علایق سرمایه‌گذاری:</span>
+                                <p class="text-white text-sm mt-1">${profile.interests || 'اطلاعاتی وارد نشده'}</p>
+                            </div>
+                        </div>
+                        
+                        <button onclick="closeProfileViewModal()" class="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg transition-colors">
+                            بستن
+                        </button>
+                    </div>
+                `;
+            }
+            
+            document.body.appendChild(modal);
+        }
+        
+        function closeProfileViewModal() {
+            const modal = document.getElementById('profileViewModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+        
+        // بررسی ورود خودکار هنگام بارگذاری صفحه - غیرفعال شده برای امنیت
+        function checkAutoLogin() {
+            // بررسی وجود کاربران قبلی و حفظ آن‌ها
+            const existingUsers = JSON.parse(localStorage.getItem('platformUsers'));
+            if (!existingUsers) {
+                // اگر هیچ کاربری وجود ندارد، ساختار اولیه ایجاد کن
+                localStorage.setItem('platformUsers', JSON.stringify({ ideaOwner: [], investor: [] }));
+            }
+            
+            // عدم ورود خودکار - کاربر باید هر بار ایمیل و رمز وارد کند
+            // اما تمام اطلاعات کاربر در localStorage ذخیره می‌ماند
+            clearUserSession();
+            return false;
+        }
+        
+        // ذخیره اطلاعات کاربر برای ورود خودکار
+        function saveUserSession() {
+            try {
+                if (currentUser && currentUserType) {
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    localStorage.setItem('currentUserType', currentUserType);
+                }
+            } catch (error) {
+                console.error('Error saving user session:', error);
+            }
+        }
+        
+        // پاک کردن اطلاعات جلسه
+        function clearUserSession() {
+            try {
+                localStorage.removeItem('currentUser');
+                localStorage.removeItem('currentUserType');
+                currentUser = null;
+                currentUserType = null;
+            } catch (error) {
+                console.error('Error clearing user session:', error);
+            }
+        }
+        
+        // توابع نوتیفیکیشن چت
+        function showChatNotification(userType) {
+            const notificationId = userType === 'ideaOwner' ? 'ideaOwnerChatNotification' : 'investorChatNotification';
+            const notification = document.getElementById(notificationId);
+            if (notification) {
+                notification.classList.remove('hidden');
+            }
+        }
+        
+        function hideChatNotification(userType) {
+            const notificationId = userType === 'ideaOwner' ? 'ideaOwnerChatNotification' : 'investorChatNotification';
+            const notification = document.getElementById(notificationId);
+            if (notification) {
+                notification.classList.add('hidden');
+            }
+        }
+        
+        // اضافه کردن قابلیت ارسال پیام با Enter
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                // بررسی ورود خودکار
+                if (!checkAutoLogin()) {
+                    showLoginPage();
+                }
+                
+                // تاخیر کوتاه برای اطمینان از بارگذاری کامل DOM
+                setTimeout(() => {
+                    // فرم ورود
+                    const loginEmail = document.getElementById('loginEmail');
+                    const loginPassword = document.getElementById('loginPassword');
+                    if (loginEmail && loginPassword) {
+                        [loginEmail, loginPassword].forEach(input => {
+                            input.addEventListener('keypress', function(e) {
+                                if (e.key === 'Enter') {
+                                    processLogin();
+                                }
+                            });
+                        });
+                    }
+                    
+                    // فرم ثبت‌نام
+                    const registerInputs = ['registerName', 'registerEmail', 'registerPassword', 'registerConfirmPassword'];
+                    registerInputs.forEach(inputId => {
+                        const input = document.getElementById(inputId);
+                        if (input) {
+                            input.addEventListener('keypress', function(e) {
+                                if (e.key === 'Enter') {
+                                    processRegister();
+                                }
+                            });
+                        }
+                    });
+                    
+                    // چت ایده‌دار
+                    const ideaOwnerChatInput = document.getElementById('ideaOwnerChatInput');
+                    if (ideaOwnerChatInput) {
+                        ideaOwnerChatInput.addEventListener('keypress', function(e) {
+                            if (e.key === 'Enter' && !this.disabled) {
+                                sendIdeaOwnerMessage();
+                            }
+                        });
+                    }
+                    
+                    // چت سرمایه‌گذار
+                    const investorChatInput = document.getElementById('investorChatInput');
+                    if (investorChatInput) {
+                        investorChatInput.addEventListener('keypress', function(e) {
+                            if (e.key === 'Enter' && !this.disabled) {
+                                sendInvestorMessage();
+                            }
+                        });
+                    }
+                    
+                    // چت پشتیبانی
+                    const supportChatInput = document.getElementById('supportChatInput');
+                    if (supportChatInput) {
+                        supportChatInput.addEventListener('keypress', function(e) {
+                            if (e.key === 'Enter') {
+                                sendSupportMessage();
+                            }
+                        });
+                    }
+                }, 100);
+            } catch (error) {
+                console.error('Error in DOMContentLoaded:', error);
+                // در صورت خطا، حداقل صفحه ورود را نمایش بده
+                showLoginPage();
+            }
+        });

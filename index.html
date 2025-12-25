@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>      
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پلتفرم ایده دار و سرمایه‌گذاری</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="gradient-bg min-h-screen text-white">
+    <!-- صفحه ورود اصلی -->
+    <div id="loginPage" class="min-h-screen flex items-center justify-center p-4">
+        <div class="max-w-4xl w-full">
+            <div class="text-center mb-12">
+                <h1 class="text-5xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                    پلتفرم ایده دار و سرمایه‌گذاری
+                </h1>
+                <p class="text-xl text-gray-300">جایی که ایده‌ها با سرمایه ملاقات می‌کنند</p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- ورود ایده‌دار -->
+                <div class="bg-gray-800/50 backdrop-blur-lg rounded-2xl p-8 card-hover border border-purple-500/30">
+                    <div class="text-center mb-6">
+                        <div class="w-20 h-20 mx-auto mb-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                            <span class="text-3xl">💡</span>
+                        </div>
+                        <h2 class="text-2xl font-bold text-purple-300">ورود ایده‌دار</h2>
+                        <p class="text-gray-400 mt-2">ایده‌های خود را به فروش برسانید</p>
+                    </div>
+                    <button onclick="showAuthPage('ideaOwner')" class="w-full purple-gradient text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity">
+                        ورود به عنوان ایده‌دار
+                    </button>
+                </div>
+                
+                <!-- ورود سرمایه‌گذار -->
+                <div class="bg-gray-800/50 backdrop-blur-lg rounded-2xl p-8 card-hover border border-blue-500/30">
+                    <div class="text-center mb-6">
+                        <div class="w-20 h-20 mx-auto mb-4 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center">
+                            <span class="text-3xl">💰</span>
+                        </div>
+                        <h2 class="text-2xl font-bold text-gray-300">ورود سرمایه‌گذار</h2>
+                        <p class="text-gray-400 mt-2">در ایده‌های برتر سرمایه‌گذاری کنید</p>
+                    </div>
+                    <button onclick="showAuthPage('investor')" class="w-full from-gray-500 bg-gradient-to-r purple-gradient to-cyan-500 text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity">
+                        ورود به عنوان سرمایه‌گذار
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- صفحه ورود/ثبت‌نام -->
+    <div id="authPage" class="hidden min-h-screen flex items-center justify-center p-4">
+        <div class="max-w-md w-full">
+            <div class="bg-gray-800/50 backdrop-blur-lg rounded-2xl p-8 border border-purple-500/30">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-bold text-purple-300" id="authTitle">ورود ایده‌دار</h2>
+                    <p class="text-gray-400 mt-2">لطفاً وارد حساب کاربری خود شوید</p>
+                    
+
+                </div>
+                
+                <div id="loginForm" class="space-y-4">
+                    <div id="loginError" class="hidden bg-red-600/20 border border-red-500 rounded-lg p-3 text-red-300 text-sm"></div>
+                    <input type="email" id="loginEmail" placeholder="ایمیل" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-3 text-white" required>
+                    <input type="password" id="loginPassword" placeholder="رمز عبور" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-3 text-white" required>
+                    <button onclick="processLogin()" id="loginButton" class="w-full purple-gradient text-white py-3 rounded-lg font-semibold">ورود</button>
+                    <p class="text-center text-gray-400">
+                        حساب کاربری ندارید؟ 
+                        <button onclick="showRegisterForm()" class="text-purple-400 hover:text-purple-300">ثبت‌نام کنید</button>
+                    </p>
+                </div>
+                
+                <div id="registerForm" class="hidden space-y-4">
+                    <div id="registerError" class="hidden bg-red-600/20 border border-red-500 rounded-lg p-3 text-red-300 text-sm"></div>
+                    <input type="text" id="registerName" placeholder="نام و نام خانوادگی" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-3 text-white" required>
+                    <input type="email" id="registerEmail" placeholder="ایمیل" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-3 text-white" required>
+                    <input type="password" id="registerPassword" placeholder="رمز عبور (حداقل 6 کاراکتر)" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-3 text-white" required minlength="6">
+                    <input type="password" id="registerConfirmPassword" placeholder="تکرار رمز عبور" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-3 text-white" required>
+                    <button onclick="processRegister()" class="w-full purple-gradient text-white py-3 rounded-lg font-semibold">ثبت‌نام</button>
+                    <p class="text-center text-gray-400">
+                        قبلاً ثبت‌نام کرده‌اید؟ 
+                        <button onclick="showLoginForm()" class="text-purple-400 hover:text-purple-300">وارد شوید</button>
+                    </p>
+                </div>
+                
+                <button onclick="showLoginPage()" class="w-full mt-4 bg-gray-600 hover:bg-gray-700 text-white py-2 rounded-lg transition-colors">بازگشت</button>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- داشبورد ایده‌دار -->
+    <div id="ideaOwnerDashboard" class="hidden min-h-screen">
+        <nav class="bg-gray-900/80 backdrop-blur-lg border-b border-purple-500/30 p-4">
+            <div class="max-w-7xl mx-auto flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-purple-300">داشبورد ایده‌دار</h1>
+                <button onclick="showLoginPage()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg transition-colors">خروج</button>
+            </div>
+        </nav>
+        
+        <div class="max-w-7xl mx-auto pb-20">
+            
+            <div class="p-6">
+                <!-- بخش پروفایل -->
+                <div id="ideaOwnerProfile" class="section-content">
+                    <div class="space-y-6">
+                        <!-- کیف پول -->
+                        <div class="bg-gradient-to-r from-green-600 to-emerald-600 rounded-xl p-6 border border-green-500/30">
+                            <h3 class="text-xl font-bold text-white mb-4">💰 کیف پول من</h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="text-center">
+                                    <p class="text-green-100 text-sm">موجودی فعلی</p>
+                                    <p class="text-2xl font-bold text-white" id="userWalletBalance">0 تومان</p>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-green-100 text-sm">کل درآمد</p>
+                                    <p class="text-xl font-bold text-white" id="userTotalIncome">0 تومان</p>
+                                </div>
+                            </div>
+                            <button onclick="showWalletHistory()" class="w-full mt-4 bg-white/20 hover:bg-white/30 text-white py-2 rounded-lg transition-colors">
+                                📊 تاریخچه تراکنش‌ها
+                            </button>
+                        </div>
+                        
+                        <!-- اطلاعات پروفایل -->
+                        <div class="bg-gray-800/50 backdrop-blur-lg rounded-xl p-8 border border-purple-500/30">
+                            <h3 class="text-2xl font-bold text-purple-300 mb-6">پروفایل من</h3>
+                            <div class="grid md:grid-cols-3 gap-8">
+                                <div class="text-center">
+                                    <div class="w-32 h-32 mx-auto mb-4 bg-gray-600 rounded-full flex items-center justify-center">
+                                        <span class="text-4xl">👤</span>
+                                    </div>
+                                    <h4 class="text-xl font-bold" id="userProfileName">نام کاربر</h4>
+                                    <p class="text-gray-400" id="userProfileTitle">تخصص</p>
+                                </div>
+                                <div class="md:col-span-2 space-y-4">
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <span class="text-gray-400">ایمیل:</span>
+                                            <p class="text-white" id="userProfileEmail">-</p>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-400">تلفن:</span>
+                                            <p class="text-white" id="userProfilePhone">-</p>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-400">شهر:</span>
+                                            <p class="text-white" id="userProfileCity">-</p>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-400">سابقه:</span>
+                                            <p class="text-white" id="userProfileExperience">-</p>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-400">درباره من:</span>
+                                        <p class="text-white mt-2" id="userProfileBio">هنوز اطلاعاتی وارد نشده است.</p>
+                                    </div>
+                                    <button onclick="editProfile()" class="bg-purple-600 hover:bg-purple-700 px-6 py-2 rounded-lg transition-colors">ویرایش پروفایل</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- بخش ثبت ایده -->
+                <div id="ideaOwnerSubmit" class="section-content hidden">
+                    <div class="bg-gray-800/50 backdrop-blur-lg rounded-xl p-8 border border-purple-500/30">
+                        <h3 class="text-2xl font-bold text-purple-300 mb-6">ثبت ایده جدید</h3>
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-gray-300 mb-2">موضوع ایده (حداکثر یک خط)</label>
+                                <input type="text" id="ideaTitle" maxlength="80" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-3 text-white" placeholder="موضوع ایده را در یک خط خلاصه کنید">
+                                <p class="text-xs text-gray-400 mt-1">حداکثر 80 کاراکتر</p>
+                            </div>
+                            <div>
+                                <label class="block text-gray-300 mb-2">دسته‌بندی</label>
+                                <select id="ideaCategory" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-3 text-white">
+                                    <option value="">انتخاب کنید</option>
+                                    <option value="فناوری">فناوری و نرم‌افزار</option>
+                                    <option value="کسب و کار">کسب و کار و مدیریت</option>
+                                    <option value="سلامت">سلامت و پزشکی</option>
+                                    <option value="آموزش">آموزش و تربیت</option>
+                                    <option value="سرگرمی">سرگرمی و رسانه</option>
+                                    <option value="محیط زیست">محیط زیست و انرژی</option>
+                                    <option value="مالی">مالی و بانکداری</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-gray-300 mb-2">توضیحات کامل ایده (حداقل سه خط)</label>
+                                <textarea id="ideaDescription" rows="8" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-3 text-white resize-none" placeholder="ایده خود را به طور کامل و جامع توضیح دهید. حداقل سه خط توضیح لازم است. از ذکر اطلاعات شخصی مانند شماره تلفن، ایمیل، آدرس و اکانت‌های شخصی خودداری کنید."></textarea>
+                                <p class="text-xs text-gray-400 mt-1">حداقل 150 کاراکتر - از ذکر اطلاعات تماس خودداری کنید</p>
+                            </div>
+                            <div class="ai-indicator text-center p-4 rounded-lg text-white font-semibold">
+                                🤖 این ایده توسط هوش مصنوعی بررسی و ارزیابی خواهد شد
+                            </div>
+                            <button onclick="submitIdea()" class="w-full purple-gradient text-white py-3 rounded-lg font-semibold">ثبت ایده برای بررسی</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- بخش ایده‌های من -->
+                <div id="ideaOwnerIdeas" class="section-content hidden">
+                    <div class="space-y-6">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-2xl font-bold text-purple-300">ایده‌های من</h3>
+                            <button onclick="showIdeaOwnerSection('submit')" class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg transition-colors">
+                                + ثبت ایده جدید
+                            </button>
+                        </div>
+                        <div id="userIdeasContainer" class="grid gap-6">
+                            <div class="text-center py-12">
+                                <div class="text-6xl mb-4">💡</div>
+                                <h4 class="text-xl font-bold text-gray-400 mb-2">هنوز ایده‌ای ثبت نکرده‌اید</h4>
+                                <p class="text-gray-500 mb-6">اولین ایده خود را ثبت کنید و شروع به کسب درآمد کنید</p>
+                                <button onclick="showIdeaOwnerSection('submit')" class="bg-purple-600 hover:bg-purple-700 px-6 py-3 rounded-lg transition-colors">
+                                    ثبت اولین ایده
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- بخش آزمون‌ها -->
+                <div id="ideaOwnerExams" class="section-content hidden">
+                    <div class="space-y-6">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-2xl font-bold text-purple-300">آزمون‌های تخصصی</h3>
+                            <div id="userMedals" class="flex gap-2">
+                                <!-- مدال‌ها اینجا نمایش داده می‌شود -->
+                            </div>
+                        </div>
+                        
+                        <!-- انتخاب زمینه تخصصی -->
+                        <div class="bg-gray-800/50 backdrop-blur-lg rounded-xl p-6 border border-purple-500/30">
+                            <h4 class="text-lg font-bold text-purple-300 mb-4">زمینه تخصصی شما</h4>
+                            <select id="examField" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-3 text-white mb-4" onchange="updateExamField()">
+                                <option value="">انتخاب کنید</option>
+                                <option value="فناوری">فناوری و نرم‌افزار</option>
+                                <option value="کسب و کار">کسب و کار و مدیریت</option>
+                                <option value="سلامت">سلامت و پزشکی</option>
+                                <option value="آموزش">آموزش و تربیت</option>
+                                <option value="سرگرمی">سرگرمی و رسانه</option>
+                                <option value="محیط زیست">محیط زیست و انرژی</option>
+                                <option value="مالی">مالی و بانکداری</option>
+                            </select>
+                            <p class="text-gray-400 text-sm">آزمون‌ها بر اساس زمینه انتخابی شما توسط هوش مصنوعی طراحی می‌شوند</p>
+                        </div>
+                        
+                        <div class="grid md:grid-cols-3 gap-6">
+                            <div class="bg-gray-800/50 backdrop-blur-lg rounded-xl p-6 border border-yellow-600/30">
+                                <div class="text-center mb-4">
+                                    <div class="text-4xl mb-2">🥉</div>
+                                    <h4 class="text-xl font-bold text-yellow-400">مدال برنز</h4>
+                                    <p class="text-gray-300">سطح مبتدی</p>
+                                </div>
+                                <div class="space-y-3 mb-4">
+                                    <p class="text-sm text-gray-400">• 10 سوال چهارگزینه‌ای</p>
+                                    <p class="text-sm text-gray-400">• حداقل نمره قبولی: 70%</p>
+                                    <p class="text-sm text-gray-400">• مدت زمان: 15 دقیقه</p>
+                                </div>
+                                <div class="payment-indicator text-center p-3 rounded-lg text-white text-sm mb-4">
+                                    💰 هزینه: 50,000 تومان
+                                </div>
+                                <button onclick="startExam('bronze')" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white py-3 rounded-lg transition-colors" id="bronzeExamBtn">شروع آزمون</button>
+                            </div>
+                            
+                            <div class="bg-gray-800/50 backdrop-blur-lg rounded-xl p-6 border border-gray-400/30">
+                                <div class="text-center mb-4">
+                                    <div class="text-4xl mb-2">🥈</div>
+                                    <h4 class="text-xl font-bold text-gray-300">مدال نقره</h4>
+                                    <p class="text-gray-300">سطح متوسط</p>
+                                </div>
+                                <div class="space-y-3 mb-4">
+                                    <p class="text-sm text-gray-400">• 15 سوال چهارگزینه‌ای</p>
+                                    <p class="text-sm text-gray-400">• حداقل نمره قبولی: 75%</p>
+                                    <p class="text-sm text-gray-400">• مدت زمان: 20 دقیقه</p>
+                                </div>
+                                <div class="payment-indicator text-center p-3 rounded-lg text-white text-sm mb-4">
+                                    💰 هزینه: 80,000 تومان
+                                </div>
+                                <button onclick="startExam('silver')" class="w-full bg-gray-500 hover:bg-gray-600 text-white py-3 rounded-lg transition-colors" id="silverExamBtn">شروع آزمون</button>
+                            </div>
+                            
+                            <div class="bg-gray-800/50 backdrop-blur-lg rounded-xl p-6 border border-yellow-500/30">
+                                <div class="text-center mb-4">
+                                    <div class="text-4xl mb-2">🥇</div>
+                                    <h4 class="text-xl font-bold text-yellow-500">مدال طلا</h4>
+                                    <p class="text-gray-300">سطح پیشرفته</p>
+                                </div>
+                                <div class="space-y-3 mb-4">
+                                    <p class="text-sm text-gray-400">• 20 سوال چهارگزینه‌ای</p>
+                                    <p class="text-sm text-gray-400">• حداقل نمره قبولی: 80%</p>
+                                    <p class="text-sm text-gray-400">• مدت زمان: 25 دقیقه</p>
+                                </div>
+                                <div class="payment-indicator text-center p-3 rounded-lg text-white text-sm mb-4">
+                                    💰 هزینه: 120,000 تومان
+                                </div>
+                                <button onclick="startExam('gold')" class="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-3 rounded-lg transition-colors" id="goldExamBtn">شروع آزمون</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- بخش پروژه‌ها -->
+                <div id="ideaOwnerProjects" class="section-content hidden">
+                    <div class="space-y-6">
+                        <h3 class="text-2xl font-bold text-orange-300">مدیریت پروژه‌ها</h3>
+                        <div id="ideaOwnerProjectsList" class="space-y-4">
+                            <!-- لیست پروژه‌ها اینجا نمایش داده می‌شود -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- بخش چت -->
+                <div id="ideaOwnerChat" class="section-content hidden">
+                    <div class="space-y-4">
+                        <h3 class="text-2xl font-bold text-green-300">چت با سرمایه‌گذاران</h3>
+                        <div id="ideaOwnerChatList" class="space-y-4">
+                            <!-- لیست چت‌ها اینجا نمایش داده می‌شود -->
+                        </div>
+                    </div>
+                    
+                    <!-- پنجره چت -->
+                    <div id="ideaOwnerChatWindow" class="hidden bg-gray-800/50 backdrop-blur-lg rounded-xl border border-green-500/30 h-96 flex flex-col mt-4">
+                        <div class="p-4 border-b border-gray-600 flex justify-between items-center">
+                            <h3 class="text-xl font-bold text-green-300" id="ideaOwnerChatTitle">چت با سرمایه‌گذار</h3>
+                            <button onclick="closeIdeaOwnerChat()" class="text-gray-400 hover:text-white">✕</button>
+                        </div>
+                        <div class="flex-1 p-6 overflow-y-auto" id="ideaOwnerChatMessages">
+                            <!-- پیام‌ها اینجا نمایش داده می‌شود -->
+                        </div>
+                        <div class="border-t border-gray-600 p-4">
+                            <div class="flex gap-2">
+                                <input type="text" id="ideaOwnerChatInput" placeholder="پیام خود را بنویسید..." class="flex-1 bg-gray-700 border border-gray-600 rounded-lg p-3 text-white">
+                                <button onclick="sendIdeaOwnerMessage()" class="bg-green-600 hover:bg-green-700 px-6 py-3 rounded-lg text-white transition-colors">ارسال</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- نوار ناوبری پایین برای ایده‌دار -->
+        <div class="fixed bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur-lg border-t border-purple-500/30 p-4 z-40">
+            <div class="max-w-md mx-auto">
+                <div class="flex justify-around">
+                    <button onclick="showIdeaOwnerSection('profile')" class="nav-item flex flex-col items-center p-2 rounded-lg transition-all" data-section="profile">
+                        <span class="text-2xl mb-1">👤</span>
+                        <span class="text-xs">پروفایل</span>
+                    </button>
+                    <button onclick="showIdeaOwnerSection('submit')" class="nav-item flex flex-col items-center p-2 rounded-lg transition-all" data-section="submit">
+                        <span class="text-2xl mb-1">💡</span>
+                        <span class="text-xs">ثبت ایده</span>
+                    </button>
+                    <button onclick="showIdeaOwnerSection('ideas')" class="nav-item flex flex-col items-center p-2 rounded-lg transition-all" data-section="ideas">
+                        <span class="text-2xl mb-1">📋</span>
+                        <span class="text-xs">ایده‌ها</span>
+                    </button>
+                    <button onclick="showIdeaOwnerSection('exams')" class="nav-item flex flex-col items-center p-2 rounded-lg transition-all" data-section="exams">
+                        <span class="text-2xl mb-1">🎓</span>
+                        <span class="text-xs">آزمون</span>
+                    </button>
+                    <button onclick="showIdeaOwnerSection('projects')" class="nav-item flex flex-col items-center p-2 rounded-lg transition-all" data-section="projects">
+                        <span class="text-2xl mb-1">📊</span>
+                        <span class="text-xs">پروژه‌ها</span>
+                    </button>
+                    <button onclick="showIdeaOwnerSection('chat')" class="nav-item flex flex-col items-center p-2 rounded-lg transition-all relative" data-section="chat">
+                        <span class="text-2xl mb-1">💬</span>
+                        <span class="text-xs">چت</span>
+                        <div id="ideaOwnerChatNotification" class="hidden absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full"></div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- داشبورد سرمایه‌گذار -->
+    <div id="investorDashboard" class="hidden min-h-screen">
+        <nav class="bg-gray-900/80 backdrop-blur-lg border-b border-blue-500/30 p-4">
+            <div class="max-w-7xl mx-auto flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-blue-300">داشبورد سرمایه‌گذار</h1>
+                <button onclick="showLoginPage()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg transition-colors">خروج</button>
+            </div>
+        </nav>
+        
+        <div class="max-w-7xl mx-auto pb-20">
+            
+            <div class="p-6">
+                <!-- بخش پروفایل سرمایه‌گذار -->
+                <div id="investorProfile" class="section-content">
+                    <div class="bg-gray-800/50 backdrop-blur-lg rounded-xl p-8 border border-blue-500/30">
+                        <h3 class="text-2xl font-bold text-blue-300 mb-6">پروفایل من</h3>
+                        <div class="grid md:grid-cols-3 gap-8">
+                            <div class="text-center">
+                                <div class="relative w-32 h-32 mx-auto mb-4">
+                                    <div class="w-32 h-32 bg-gray-600 rounded-full flex items-center justify-center">
+                                        <span class="text-4xl">👤</span>
+                                    </div>
+                                    <!-- نمایش مدال‌ها روی تصویر پروفایل -->
+                                    <div id="profileMedals" class="absolute -top-2 -right-2 flex flex-wrap gap-1">
+                                        <!-- مدال‌ها اینجا نمایش داده می‌شود -->
+                                    </div>
+                                </div>
+                                <h4 class="text-xl font-bold" id="investorProfileName">نام کاربر</h4>
+                                <p class="text-gray-400">سرمایه‌گذار</p>
+                            </div>
+                            <div class="md:col-span-2 space-y-4">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <span class="text-gray-400">ایمیل:</span>
+                                        <p class="text-white" id="investorProfileEmail">-</p>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-400">تلفن:</span>
+                                        <p class="text-white" id="investorProfilePhone">-</p>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-400">شهر:</span>
+                                        <p class="text-white" id="investorProfileCity">-</p>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-400">بودجه:</span>
+                                        <p class="text-white" id="investorProfileBudget">-</p>
+                                    </div>
+                                </div>
+                                <div>
+                                    <span class="text-gray-400">علایق سرمایه‌گذاری:</span>
+                                    <p class="text-white mt-2" id="investorProfileInterests">هنوز اطلاعاتی وارد نشده است.</p>
+                                </div>
+                                <button onclick="editInvestorProfile()" class="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg transition-colors">ویرایش پروفایل</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- بخش مشاهده ایده‌ها -->
+                <div id="investorIdeas" class="section-content hidden">
+                    <div class="space-y-6">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-2xl font-bold text-blue-300">ایده‌های موجود</h3>
+                            <div class="flex gap-4">
+                                <select id="categoryFilter" class="bg-gray-700 border border-gray-600 rounded-lg p-2 text-white" onchange="filterIdeas()">
+                                    <option value="">همه دسته‌ها</option>
+                                    <option value="فناوری">فناوری و نرم‌افزار</option>
+                                    <option value="کسب و کار">کسب و کار و مدیریت</option>
+                                    <option value="سلامت">سلامت و پزشکی</option>
+                                    <option value="آموزش">آموزش و تربیت</option>
+                                    <option value="سرگرمی">سرگرمی و رسانه</option>
+                                    <option value="محیط زیست">محیط زیست و انرژی</option>
+                                    <option value="مالی">مالی و بانکداری</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div id="availableIdeasContainer" class="grid gap-6">
+                            <div class="text-center py-12">
+                                <div class="text-6xl mb-4">🔍</div>
+                                <h4 class="text-xl font-bold text-gray-400 mb-2">هنوز ایده‌ای برای سرمایه‌گذاری موجود نیست</h4>
+                                <p class="text-gray-500">به زودی ایده‌های جدید اضافه خواهد شد</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- بخش سرمایه‌گذاری‌های من -->
+                <div id="investorInvestments" class="section-content hidden">
+                    <div class="space-y-6">
+                        <h3 class="text-2xl font-bold text-blue-300">سرمایه‌گذاری‌های من</h3>
+                        <div id="userInvestmentsContainer" class="grid gap-6">
+                            <div class="text-center py-12">
+                                <div class="text-6xl mb-4">📊</div>
+                                <h4 class="text-xl font-bold text-gray-400 mb-2">هنوز سرمایه‌گذاری نکرده‌اید</h4>
+                                <p class="text-gray-500 mb-6">در ایده‌های برتر سرمایه‌گذاری کنید و درآمد کسب کنید</p>
+                                <button onclick="showInvestorSection('ideas')" class="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg transition-colors">
+                                    مشاهده ایده‌ها
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- بخش صندوق امانات -->
+                <div id="investorEscrow" class="section-content hidden">
+                    <div class="space-y-6">
+                        <h3 class="text-2xl font-bold text-blue-300">صندوق امانات</h3>
+                        <div id="escrowTransactionsContainer" class="grid gap-6">
+                            <div class="text-center py-12">
+                                <div class="text-6xl mb-4">🏦</div>
+                                <h4 class="text-xl font-bold text-gray-400 mb-2">هیچ تراکنش امانی موجود نیست</h4>
+                                <p class="text-gray-500">پس از خرید ایده، پول در صندوق امانات نگهداری می‌شود</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- بخش چت سرمایه‌گذار -->
+                <div id="investorChat" class="section-content hidden">
+                    <div class="space-y-4">
+                        <h3 class="text-2xl font-bold text-green-300">چت با ایده‌داران</h3>
+                        <div id="investorChatList" class="space-y-4">
+                            <!-- لیست چت‌ها اینجا نمایش داده می‌شود -->
+                        </div>
+                    </div>
+                    
+                    <!-- پنجره چت -->
+                    <div id="investorChatWindow" class="hidden bg-gray-800/50 backdrop-blur-lg rounded-xl border border-green-500/30 h-96 flex flex-col mt-4">
+                        <div class="p-4 border-b border-gray-600 flex justify-between items-center">
+                            <h3 class="text-xl font-bold text-green-300" id="investorChatTitle">چت با ایده‌دار</h3>
+                            <button onclick="closeInvestorChat()" class="text-gray-400 hover:text-white">✕</button>
+                        </div>
+                        <div class="flex-1 p-6 overflow-y-auto" id="investorChatMessages">
+                            <!-- پیام‌ها اینجا نمایش داده می‌شود -->
+                        </div>
+                        <div class="border-t border-gray-600 p-4">
+                            <div class="flex gap-2">
+                                <input type="text" id="investorChatInput" placeholder="پیام خود را بنویسید..." class="flex-1 bg-gray-700 border border-gray-600 rounded-lg p-3 text-white">
+                                <button onclick="sendInvestorMessage()" class="bg-green-600 hover:bg-green-700 px-6 py-3 rounded-lg text-white transition-colors">ارسال</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- نوار ناوبری پایین برای سرمایه‌گذار -->
+        <div class="fixed bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur-lg border-t border-blue-500/30 p-4 z-40">
+            <div class="max-w-md mx-auto">
+                <div class="flex justify-around">
+                    <button onclick="showInvestorSection('profile')" class="nav-item flex flex-col items-center p-2 rounded-lg transition-all" data-section="profile">
+                        <span class="text-2xl mb-1">👤</span>
+                        <span class="text-xs">پروفایل</span>
+                    </button>
+                    <button onclick="showInvestorSection('ideas')" class="nav-item flex flex-col items-center p-2 rounded-lg transition-all" data-section="ideas">
+                        <span class="text-2xl mb-1">💡</span>
+                        <span class="text-xs">ایده‌ها</span>
+                    </button>
+                    <button onclick="showInvestorSection('investments')" class="nav-item flex flex-col items-center p-2 rounded-lg transition-all" data-section="investments">
+                        <span class="text-2xl mb-1">📊</span>
+                        <span class="text-xs">سرمایه‌گذاری</span>
+                    </button>
+                    <button onclick="showInvestorSection('escrow')" class="nav-item flex flex-col items-center p-2 rounded-lg transition-all" data-section="escrow">
+                        <span class="text-2xl mb-1">🏦</span>
+                        <span class="text-xs">صندوق</span>
+                    </button>
+                    <button onclick="showInvestorSection('chat')" class="nav-item flex flex-col items-center p-2 rounded-lg transition-all relative" data-section="chat">
+                        <span class="text-2xl mb-1">💬</span>
+                        <span class="text-xs">چت</span>
+                        <div id="investorChatNotification" class="hidden absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full"></div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- صفحه جزئیات ایده -->
+    <div id="ideaDetailsPage" class="hidden min-h-screen">
+        <nav class="bg-gray-900/80 backdrop-blur-lg border-b border-blue-500/30 p-4">
+            <div class="max-w-7xl mx-auto flex justify-between items-center">
+                <button onclick="showInvestorSection('ideas')" class="text-blue-300 hover:text-blue-200">← بازگشت</button>
+                <h1 class="text-2xl font-bold text-blue-300">جزئیات ایده</h1>
+                <div></div>
+            </div>
+        </nav>
+        
+        <div class="max-w-4xl mx-auto p-6">
+            <div class="bg-gray-800/50 backdrop-blur-lg rounded-xl p-8 border border-purple-500/30">
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div>
+                        <h2 class="text-3xl font-bold text-purple-300 mb-4">اپلیکیشن آموزش آنلاین</h2>
+                        <p class="text-gray-300 mb-6">پلتفرمی نوآورانه برای آموزش آنلاین که با استفاده از هوش مصنوعی، تجربه یادگیری شخصی‌سازی شده ارائه می‌دهد.</p>
+                        
+                        <div class="space-y-3 mb-6">
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">دسته‌بندی:</span>
+                                <span class="text-white">آموزش</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">سطح تخصص ایده‌دار:</span>
+                                <span class="bg-green-600 text-xs px-3 py-1 rounded-full">عالی</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="bg-gray-700 rounded-lg p-6 mb-6">
+                            <h3 class="text-xl font-bold text-blue-300 mb-4">پروفایل ایده‌دار</h3>
+                            <div class="space-y-2">
+                                <p><span class="text-gray-400">نام:</span> علی احمدی</p>
+                                <p><span class="text-gray-400">تخصص:</span> توسعه نرم‌افزار</p>
+                                <p><span class="text-gray-400">سابقه:</span> 8 سال</p>
+                                <p><span class="text-gray-400">امتیاز:</span> ⭐⭐⭐⭐⭐</p>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <div class="ai-indicator text-center p-3 rounded-lg text-white font-semibold">
+                                🤖 قیمت پیشنهادی هوش مصنوعی: 25,000,000 تومان
+                            </div>
+                            <button onclick="showPurchaseModal()" class="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity">
+                                خرید ایده
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- مودال خرید -->
+    <div id="purchaseModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-gray-800 rounded-xl p-8 max-w-md w-full border border-purple-500/30">
+            <h3 class="text-2xl font-bold text-purple-300 mb-6 text-center">خرید ایده</h3>
+            
+            <div class="space-y-4 mb-6">
+                <div class="bg-gray-700 p-4 rounded-lg">
+                    <h4 class="font-semibold mb-2">قیمت نهایی</h4>
+                    <p class="text-2xl font-bold text-green-400">25,000,000 تومان</p>
+                </div>
+                
+                <div class="payment-indicator text-center p-3 rounded-lg text-white font-semibold">
+                    💳 انتخاب روش پرداخت
+                </div>
+                
+                <div class="space-y-2">
+                    <label class="flex items-center space-x-3 space-x-reverse">
+                        <input type="radio" name="payment" value="fiat" class="text-purple-500" onchange="showPaymentDetails('fiat')">
+                        <span>پرداخت با تومان/دلار</span>
+                    </label>
+                    <label class="flex items-center space-x-3 space-x-reverse">
+                        <input type="radio" name="payment" value="crypto" class="text-purple-500" onchange="showPaymentDetails('crypto')">
+                        <span>پرداخت با بیت‌کوین</span>
+                    </label>
+                </div>
+                
+                <div class="payment-indicator text-center p-2 rounded text-white text-sm">
+                    💰 سیستم پرداخت امن و رمزنگاری شده
+                </div>
+                
+                <div id="paymentDetails" class="hidden space-y-3 mt-4 p-4 bg-gray-700 rounded-lg">
+                    <div id="fiatPayment" class="hidden">
+                        <h5 class="font-semibold mb-2">💳 پرداخت با کارت</h5>
+                        <input type="text" placeholder="شماره کارت (16 رقم)" class="w-full bg-gray-600 border border-gray-500 rounded p-2 text-white text-sm" maxlength="19">
+                        <div class="grid grid-cols-2 gap-2 mt-2">
+                            <input type="text" placeholder="MM/YY" class="bg-gray-600 border border-gray-500 rounded p-2 text-white text-sm" maxlength="5">
+                            <input type="text" placeholder="CVV" class="bg-gray-600 border border-gray-500 rounded p-2 text-white text-sm" maxlength="4">
+                        </div>
+                        <input type="text" placeholder="نام صاحب کارت" class="w-full bg-gray-600 border border-gray-500 rounded p-2 text-white text-sm mt-2">
+                    </div>
+                    
+                    <div id="cryptoPayment" class="hidden">
+                        <h5 class="font-semibold mb-2">₿ پرداخت با بیت‌کوین</h5>
+                        <div class="bg-gray-600 p-3 rounded text-center">
+                            <p class="text-xs text-gray-300 mb-2">آدرس کیف پول:</p>
+                            <p class="text-xs font-mono bg-gray-800 p-2 rounded break-all">1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa</p>
+                            <p class="text-xs text-gray-300 mt-2">مبلغ: <span class="text-orange-400">0.00025 BTC</span></p>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-2">⚠️ پس از انتقال، تراکنش خودکار تایید می‌شود</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex gap-4">
+                <button onclick="closePurchaseModal()" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-3 rounded-lg transition-colors">انصراف</button>
+                <button onclick="processPurchase()" class="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg transition-colors">پرداخت</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- مودال پرداخت آزمون -->
+    <div id="examPaymentModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-gray-800 rounded-xl p-8 max-w-md w-full border border-purple-500/30">
+            <h3 class="text-2xl font-bold text-purple-300 mb-6 text-center">پرداخت آزمون</h3>
+            
+            <div class="space-y-4 mb-6">
+                <div class="bg-gray-700 p-4 rounded-lg text-center">
+                    <h4 class="font-semibold mb-2" id="examPaymentTitle">آزمون مدال برنز</h4>
+                    <p class="text-gray-300 mb-2" id="examPaymentField">زمینه: فناوری</p>
+                    <p class="text-2xl font-bold text-green-400" id="examPaymentPrice">50,000 تومان</p>
+                </div>
+                
+                <div class="payment-indicator text-center p-3 rounded-lg text-white font-semibold">
+                    💳 انتخاب روش پرداخت
+                </div>
+                
+                <div class="space-y-2">
+                    <label class="flex items-center space-x-3 space-x-reverse">
+                        <input type="radio" name="examPayment" value="fiat" class="text-purple-500" onchange="showExamPaymentDetails('fiat')">
+                        <span>پرداخت با تومان/دلار</span>
+                    </label>
+                    <label class="flex items-center space-x-3 space-x-reverse">
+                        <input type="radio" name="examPayment" value="crypto" class="text-purple-500" onchange="showExamPaymentDetails('crypto')">
+                        <span>پرداخت با بیت‌کوین</span>
+                    </label>
+                </div>
+                
+                <div class="payment-indicator text-center p-2 rounded text-white text-sm">
+                    💰 سیستم پرداخت امن و رمزنگاری شده
+                </div>
+                
+                <div id="examPaymentDetails" class="hidden space-y-3 mt-4 p-4 bg-gray-700 rounded-lg">
+                    <div id="examFiatPayment" class="hidden">
+                        <h5 class="font-semibold mb-2">💳 پرداخت با کارت</h5>
+                        <input type="text" placeholder="شماره کارت (16 رقم)" class="w-full bg-gray-600 border border-gray-500 rounded p-2 text-white text-sm" maxlength="19">
+                        <div class="grid grid-cols-2 gap-2 mt-2">
+                            <input type="text" placeholder="MM/YY" class="bg-gray-600 border border-gray-500 rounded p-2 text-white text-sm" maxlength="5">
+                            <input type="text" placeholder="CVV" class="bg-gray-600 border border-gray-500 rounded p-2 text-white text-sm" maxlength="4">
+                        </div>
+                        <input type="text" placeholder="نام صاحب کارت" class="w-full bg-gray-600 border border-gray-500 rounded p-2 text-white text-sm mt-2">
+                    </div>
+                    
+                    <div id="examCryptoPayment" class="hidden">
+                        <h5 class="font-semibold mb-2">₿ پرداخت با بیت‌کوین</h5>
+                        <div class="bg-gray-600 p-3 rounded text-center">
+                            <p class="text-xs text-gray-300 mb-2">آدرس کیف پول:</p>
+                            <p class="text-xs font-mono bg-gray-800 p-2 rounded break-all">1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa</p>
+                            <p class="text-xs text-gray-300 mt-2">مبلغ: <span class="text-orange-400" id="examBtcAmount">0.00025 BTC</span></p>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-2">⚠️ پس از انتقال، تراکنش خودکار تایید می‌شود</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex gap-4">
+                <button onclick="closeExamPaymentModal()" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-3 rounded-lg transition-colors">انصراف</button>
+                <button onclick="processExamPayment()" class="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg transition-colors">پرداخت و شروع آزمون</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- مودال آزمون -->
+    <div id="examModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-gray-800 rounded-xl p-8 max-w-2xl w-full border border-purple-500/30 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-purple-300" id="examModalTitle">آزمون تخصصی</h3>
+                <div class="flex items-center gap-4">
+                    <div id="examTimer" class="bg-red-600 px-4 py-2 rounded-lg text-white font-bold">05:00</div>
+                    <button onclick="closeExamModal()" class="text-gray-400 hover:text-white">✕</button>
+                </div>
+            </div>
+            
+            <div id="examContent">
+                <!-- محتوای آزمون اینجا نمایش داده می‌شود -->
+            </div>
+            
+            <div class="flex justify-between items-center mt-6">
+                <div class="text-gray-400">
+                    سوال <span id="currentQuestionNumber">1</span> از <span id="totalQuestions">10</span>
+                </div>
+                <div class="flex gap-4">
+                    <button onclick="previousQuestion()" id="prevBtn" class="bg-gray-600 hover:bg-gray-700 px-6 py-2 rounded-lg transition-colors" disabled>قبلی</button>
+                    <button onclick="nextQuestion()" id="nextBtn" class="bg-purple-600 hover:bg-purple-700 px-6 py-2 rounded-lg transition-colors">بعدی</button>
+                    <button onclick="finishExam()" id="finishBtn" class="hidden bg-green-600 hover:bg-green-700 px-6 py-2 rounded-lg transition-colors">اتمام آزمون</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ویجت چت پشتیبانی -->
+    <div id="supportChatWidget" class="fixed bottom-32 right-6 z-50">
+        <!-- دکمه چت -->
+        <button id="supportChatButton" onclick="toggleSupportChat()" class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center text-white text-2xl hover:scale-110">
+            💬
+        </button>
+        
+        <!-- پنجره چت -->
+        <div id="supportChatWindow" class="hidden absolute bottom-20 right-0 w-80 h-96 bg-gray-800 rounded-xl shadow-2xl border border-purple-500/30 flex flex-col">
+            <div class="bg-gradient-to-r from-blue-500 to-purple-600 p-4 rounded-t-xl">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-white font-bold">پشتیبانی</h3>
+                    <button onclick="toggleSupportChat()" class="text-white hover:text-gray-200">✕</button>
+                </div>
+            </div>
+            
+            <div class="flex-1 p-4 overflow-y-auto" id="supportChatMessages">
+                <div class="space-y-3">
+                    <div class="bg-blue-600 rounded-lg p-3 text-white text-sm">
+                        سلام! چطور می‌تونم کمکتون کنم؟
+                    </div>
+                    
+                    <!-- سوالات پیش‌فرض -->
+                    <div class="space-y-2">
+                        <p class="text-gray-300 text-xs">سوالات متداول:</p>
+                        <button onclick="askPredefinedQuestion('چطور ایده ثبت کنم؟')" class="w-full text-right bg-gray-700 hover:bg-gray-600 p-2 rounded text-white text-sm transition-colors">
+                            چطور ایده ثبت کنم؟
+                        </button>
+                        <button onclick="askPredefinedQuestion('چطور سرمایه‌گذاری کنم؟')" class="w-full text-right bg-gray-700 hover:bg-gray-600 p-2 rounded text-white text-sm transition-colors">
+                            چطور سرمایه‌گذاری کنم؟
+                        </button>
+                        <button onclick="askPredefinedQuestion('آزمون‌های تخصصی چیست؟')" class="w-full text-right bg-gray-700 hover:bg-gray-600 p-2 rounded text-white text-sm transition-colors">
+                            آزمون‌های تخصصی چیست؟
+                        </button>
+                        <button onclick="askPredefinedQuestion('نحوه پرداخت چگونه است؟')" class="w-full text-right bg-gray-700 hover:bg-gray-600 p-2 rounded text-white text-sm transition-colors">
+                            نحوه پرداخت چگونه است؟
+                        </button>
+                        <button onclick="askPredefinedQuestion('امنیت پلتفرم چطور است؟')" class="w-full text-right bg-gray-700 hover:bg-gray-600 p-2 rounded text-white text-sm transition-colors">
+                            امنیت پلتفرم چطور است؟
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-600 p-3">
+                <div class="flex gap-2">
+                    <input type="text" id="supportChatInput" placeholder="سوال خود را بپرسید..." class="flex-1 bg-gray-700 border border-gray-600 rounded-lg p-2 text-white text-sm">
+                    <button onclick="sendSupportMessage()" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-white text-sm transition-colors">ارسال</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="main.js"></script>
+    <script src="auth.js"></script>
+
+</body>
+</html>
